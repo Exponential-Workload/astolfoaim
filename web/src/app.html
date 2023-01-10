@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%sveltekit.assets%/favicon.png" />
+    <meta name="viewport" content="width=device-width" />
+    %sveltekit.head%
+    <style>
+      html {
+        position: fixed;
+        z-index: -6;
+      }
+      body {
+        margin: 0 0;
+        position: relative;
+        background: #0000;
+      }
+      /* body::before {
+        content: ' ';
+        position: fixed;
+        top: -12.5vh;
+        left: -12.5vw;
+        z-index: -5;
+        width: 125vw;
+        height: 125vh;
+        display: block;
+        background-image: url(https://cdn.discordapp.com/attachments/1055251018536988783/1055255133505732648/1671513145-daf335551bed43c5a5280a2840e28014.png);
+        background-size: cover;
+        filter: brightness(0.7) blur(8px);
+      } */
+      .hlc.hlc .hljs {
+        /* color: #dedede; */
+        filter: invert() hue-rotate(180deg);
+        background: #0000;
+      }
+      * {
+        scrollbar-color: #5f4d77 #24273a;
+      }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body data-sveltekit-preload-data="hover">
+    <div style="display: contents">%sveltekit.body%</div>
+  </body>
+</html>

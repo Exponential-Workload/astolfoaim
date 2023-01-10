@@ -1,0 +1,27 @@
+{
+  "robloxLsp.diagnostics.globals": [
+    "Drawing",
+    "mousemoverel",
+    "identifyexecutor",
+    "mouse1press",
+    "gethui",
+    "getgenv",
+    "mouse1release",
+    "WebSocket",
+    "syn",
+    "AstolfoAPIDomain",
+    "request",
+    "http",
+    "http_request",
+    "rconsoleprint",
+    "WebsocketClient",
+    "rconsoleshow",
+    "__astolfoaim_do_not_fire_da_req_ting_yeye_u_get_da_point_lol__",
+    "setClipboard",
+    "setclipboard",
+    "setclip",
+    "messageboxasync",
+    "messagebox",
+    "rconsolecreate"
+  ]
+}

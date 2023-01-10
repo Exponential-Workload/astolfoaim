@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <url>
+    <loc>https://aim.femboy.cafe/</loc>
+    <lastmod>
+      2023-01-10T05:11:02+00:00</lastmod>
+    <priority>1.00</priority>
+  </url>
+  <url>
+    <loc>https://aim.femboy.cafe/join/</loc>
+    <lastmod>
+      2023-01-10T05:11:02+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://aim.femboy.cafe/get/</loc>
+    <lastmod>
+      2023-01-10T05:11:02+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://aim.femboy.cafe/ui/</loc>
+    <lastmod>
+      2023-01-10T05:11:02+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://aim.femboy.cafe/links/</loc>
+    <lastmod>
+      2023-01-10T05:11:02+00:00</lastmod>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://aim.femboy.cafe/media/</loc>
+    <lastmod>
+      2023-01-10T05:11:02+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://aim.femboy.cafe/links/v3r/</loc>
+    <lastmod>
+      2023-01-10T05:11:02+00:00</lastmod>
+    <priority>0.64</priority>
+  </url>
+  <url>
+    <loc>
+      https://aim.femboy.cafe/links/scriptblox/</loc>
+    <lastmod>2023-01-10T05:11:02+00:00</lastmod>
+    <priority>0.64</priority>
+  </url>
+  <url>
+    <loc>
+      https://aim.femboy.cafe/media/pfshowcase/</loc>
+    <lastmod>2023-01-10T05:11:02+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>
+      https://aim.femboy.cafe/media/tutorial/</loc>
+    <lastmod>2023-01-10T05:11:02+00:00</lastmod>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>
+      https://aim.femboy.cafe/media/tutorial-old/</loc>
+    <lastmod>2023-01-10T05:11:02+00:00</lastmod>
+    <priority>0.51</priority>
+  </url>
+
+
+</urlset>
