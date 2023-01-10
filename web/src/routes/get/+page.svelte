@@ -12,8 +12,8 @@
 </script>
 
 <svelte:head>
-  <title>Get AstolfoAim</title>
-  <meta name="og:title" content="Get AstolfoAim" />
+  <title>Get AstolfoAim - Free Roblox Aimbot Script</title>
+  <meta name="og:title" content="Get AstolfoAim - Free Roblox Aimbot Script" />
   <meta property="og:type" content="website" />
   <meta
     name="description"
