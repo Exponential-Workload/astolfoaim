@@ -74,6 +74,6 @@ if (existsSync(staticDir))
   app.use(express.static(staticDir))
 else
   console.warn('No static dir, will only proxy');
-app.use(proxy(process.env.STATIC_SITE ?? 'http://127.0.0.1:6666/'))
+app.use(proxy(process.env.STATIC_SITE ?? 'https://aim.femboy.cafe/'))
 
 app.listen(5595, () => console.log('Listening on port 5595'))
