@@ -35,8 +35,8 @@ jobs:
       - name: Build Pages
         run: |
           cd pages
-          pnpm i
-          pnpm minify
+          chmod +x ./_build.sh
+          ./_build.sh
       - name: Upload Script Build
         uses: actions/upload-artifact@v3.1.2
         with:
