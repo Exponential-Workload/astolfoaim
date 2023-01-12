@@ -1,4 +1,4 @@
 #!/bin/bash
-. ~/.bashrc
+source ~/.bashrc
 pnpm i
 pnpm minify
