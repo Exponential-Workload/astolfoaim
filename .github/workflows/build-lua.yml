@@ -29,7 +29,7 @@ jobs:
           name: source
           path: script
       - name: Install pnpm
-        run: ./pages/_setup-pnpm.sh
+        run: chmod +x ./pages/_setup-pnpm.sh;./pages/_setup-pnpm.sh
       - name: Setup Pages
         uses: actions/configure-pages@v2
       - name: Build Pages
