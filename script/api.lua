@@ -608,13 +608,13 @@ local function SetAimbotState(state, setIsTeamed)
     end
     updateDelta = updateDelta + delta
     if updateDelta > refreshRate then
-      local smoothLerp = 1;
+      local smoothLerp = 1
       if smoothing ~= 0 then
         smoothLerp = (1 - (smoothing + minSmoothing))
         if not getgenv().__astolfoaim_unlink_smoothing_from_framerate then
           smoothLerp = smoothLerp * (updateDelta * 50)
         end
-        smoothLerp = math.min(math.min,1)
+        smoothLerp = math.min(math.min, 1)
       end
       task.spawn(function()
         pcall(moveCircle)
@@ -951,7 +951,7 @@ local API = setmetatable({
       return finalDiv
     end
     if k == 'internals' then
-      local funcs = {
+      local defaultFuncs = {
         ['findPlrs'] = findPlrs,
         ['findChar'] = findChar,
         ['findTeam'] = findTeam,
@@ -963,31 +963,71 @@ local API = setmetatable({
         __newindex = function(t, k, v)
           if k == 'findPlrs' then
             findPlrs = v
+            return
           end
           if k == 'findChar' then
             findChar = v
+            return
           end
           if k == 'findTeam' then
             findTeam = v
+            return
           end
           if k == 'teamCheck' then
             teamCheck = v
+            return
           end
           if k == 'searchForPlayer' then
             searchForPlayer = v
+            return
           end
           if k == 'finalHook' then
             finalHook = v
+            return
+          end
+          error(
+            'Invalid Function Name: '
+              .. k
+              .. '\nCheck to make sure your AstolfoAim version matches matches the one your script is targetting.\nFor cross-version api interactions, you may need to pcall this newindex.'
+          )
+        end,
+        __index = function(t, k)
+          if k == 'original' then
+            return setmetatable({}, {
+              __index = defaultFuncs,
+              __newindex = function()
+                error 'attempt to newindex read-only table.'
+              end,
+            })
+          end
+
+          if k == 'findPlrs' then
+            return findPlrs
+          end
+          if k == 'findChar' then
+            return findChar
+          end
+          if k == 'findTeam' then
+            return findTeam
+          end
+          if k == 'teamCheck' then
+            return teamCheck
+          end
+          if k == 'searchForPlayer' then
+            return searchForPlayer
+          end
+          if k == 'finalHook' then
+            return finalHook
           end
         end,
-        __index = funcs,
         __tostring = function()
           local keys
-          for key in pairs(funcs) do
+          for key in pairs(defaultFuncs) do
             keys = (keys and keys .. ', ' or '') .. key
           end
           return 'AstolfoAim Internals\nFunctions:' .. keys
         end,
+        __metatable = 'AstofloAim Internal Function API',
       })
     end
     error('Unknown or unwritable property: ' .. k)
@@ -1197,6 +1237,7 @@ local API = setmetatable({
     end
     error('Unknown Property: ' .. k)
   end,
+  __metatable = 'AstofloAim API',
 })
 return API
 ---------------------------------------
