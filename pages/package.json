@@ -7,8 +7,8 @@
     "minify": "ts-node buildpages.js"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "YieldingExploiter",
+  "license": "AGPL-3.0-OR-LATER",
   "devDependencies": {
     "@types/node": "^18.11.18",
     "luamin": "^1.0.4",
