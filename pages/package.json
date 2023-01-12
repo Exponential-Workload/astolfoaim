@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "minify": "ts-node buildpages.js"
+    "minify": "ts-node buildpages.ts"
   },
   "keywords": [],
   "author": "YieldingExploiter",
