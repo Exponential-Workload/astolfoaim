@@ -632,7 +632,7 @@ local function SetAimbotState(state, setIsTeamed)
         if not getgenv().__astolfoaim_unlink_smoothing_from_framerate then
           smoothLerp = smoothLerp * (updateDelta * 50)
         end
-        smoothLerp = math.min(math.min, 1)
+        smoothLerp = math.min(smoothLerp, 1)
       end
       task.spawn(function()
         pcall(moveCircle)
