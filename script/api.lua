@@ -73,7 +73,7 @@ local zeroPrecisionRecursionCount = getgenv().__astolfoaim_zero_precision_recurs
 local maximumPixelsPerSecond = 10000
 local maximumPixelsPerFrame = 1000
 
-local finalDiv = 2
+local finalDiv = 0.5
 
 local hackulaSupport = false -- arsenal only, can flag or error elsewhere
 
