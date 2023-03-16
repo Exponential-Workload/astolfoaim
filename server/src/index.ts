@@ -69,6 +69,10 @@ app.use('/get-connection-code', (rq, rs) => {
   else
     rs.send(random(16))
 })
+app.use((rq,rs,nx)=>{
+  rs.set('Cache-Control', 'public, max-age=2592000')
+  nx();
+})
 const staticDir = path.resolve(process.cwd(), '..', 'web', 'build')
 if (existsSync(staticDir))
   app.use(express.static(staticDir))
