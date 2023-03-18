@@ -37,6 +37,7 @@ app.ws('/c/:code', (ws, req) => {
   })
   activeConnections++;
   ws.on('close', () => activeConnections--)
+  ws.on('error', (err) => console.warn(err))
   ws.send('+READY+')
 });
 
