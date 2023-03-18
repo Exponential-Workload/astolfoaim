@@ -7,7 +7,7 @@
     "minify": "ts-node buildpages.ts"
   },
   "keywords": [],
-  "author": "YieldingExploiter",
+  "author": "Exponential-Workload",
   "license": "AGPL-3.0-OR-LATER",
   "devDependencies": {
     "@types/node": "^18.15.3",

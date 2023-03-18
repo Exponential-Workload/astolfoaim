@@ -1,6 +1,6 @@
 --[=[
   AstolfoAim - A Free & Open-Source Pure-Lua Roblox Aimbot Script
-  Copyright (C) 2022 YieldingExploiter
+  Copyright (C) 2022 Exponential-Workload
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
@@ -861,7 +861,7 @@ local API = setmetatable({
     local request = request or http_request or (http or {}).request or (syn or {}).request
     local setclip = setclip or setclipboard or setClipboard or (syn or {}).setclipboard
     local code =
-      game:HttpGetAsync 'https://gist.githubusercontent.com/YieldingExploiter/40ca1ea2ee73f219337430329a5acadc/raw/discord'
+      game:HttpGetAsync 'https://gist.githubusercontent.com/Exponential-Workload/40ca1ea2ee73f219337430329a5acadc/raw/discord'
     setclip('discord.gg/' .. code)
     pcall(function()
       request {

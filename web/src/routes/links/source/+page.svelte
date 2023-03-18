@@ -1,5 +1,5 @@
 <script lang="ts">
-  const target = 'https://github.com/YieldingExploiter/AstolfoAim/';
+  const target = 'https://github.com/Exponential-Workload/AstolfoAim/';
   if (typeof document !== 'undefined') document.location.href = target;
 </script>
 

@@ -1,14 +1,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
 const luamin = require('luamin')
-const f = (...p:string[])=>path.resolve(__dirname,...p)
+const f = (...p: string[]) => path.resolve(__dirname, ...p)
 if (!fs.existsSync('_pages')) fs.mkdirSync('_pages')
-fs.readdirSync(f('..', 'script')).forEach(v => fs.writeFileSync(f('_pages', v), (v.endsWith('.lua') ? (a: string) => `-- AstolfoAim @ ${fs.readFileSync(f('..','.git',fs.readFileSync(f('..','.git','HEAD'),'utf-8').replace('ref: ','').trim()),'utf-8').trim()}
--- AGPLv3 | https://github.com/YieldingExploiter/astolfoaim/blob/main/script/${v}
+fs.readdirSync(f('..', 'script')).forEach(v => fs.writeFileSync(f('_pages', v), (v.endsWith('.lua') ? (a: string) => `-- AstolfoAim @ ${fs.readFileSync(f('..', '.git', fs.readFileSync(f('..', '.git', 'HEAD'), 'utf-8').replace('ref: ', '').trim()), 'utf-8').trim()}
+-- AGPLv3 | https://github.com/Exponential-Workload/astolfoaim/blob/main/script/${v}
 ---------------------------------------------------------------------------------------
 --[=[
   AstolfoAim - A Free & Open-Source Pure-Lua Roblox Aimbot Script
-  Copyright (C) 2022 YieldingExploiter
+  Copyright (C) 2022 Exponential-Workload
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
@@ -24,5 +24,5 @@ fs.readdirSync(f('..', 'script')).forEach(v => fs.writeFileSync(f('_pages', v), 
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ]=]
 
-${luamin.minify(a)}`: (a: string) => a)(fs.readFileSync(f('..', 'script', v), 'utf-8'))))
+${luamin.minify(a)}` : (a: string) => a)(fs.readFileSync(f('..', 'script', v), 'utf-8'))))
 fs.readdirSync(f('base')).forEach(v => fs.copyFileSync(f('base', v), f('_pages', v)))
