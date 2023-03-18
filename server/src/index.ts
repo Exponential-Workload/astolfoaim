@@ -23,26 +23,26 @@ app.ws('/c/:code', (ws, req) => {
     console.log('Blocked Connection');
     ws.send('notif:Too many connections!')
     ws.send('exec:pcall(messagebox,\'Too many connections! Try again later!\')')
-    setTimeout(()=>ws.close(),10)
+    setTimeout(() => ws.close(), 10)
     return
   }
-  console.log('Connection Started: '+code);
+  console.log('Connection Started: ' + code);
   connections[code].push(ws)
-  ws.on('message', (msg,isBin) => {
+  ws.on('message', (msg, isBin) => {
     if (isBin) return ws.close(400, 'Cannot send binary data')
     const msgAsStr = msg.toString()
     if (msgAsStr == 'keepalive') return ws.send('keepalive')
-    if (msgAsStr.length>69000) return ws.close(400,'Too much data sent! Chill the FUCK Out.')
-    connections[code].filter(v=>v!==ws).forEach(v=>v.send(msgAsStr))
+    if (msgAsStr.length > 69000) return ws.close(400, 'Too much data sent! Chill the FUCK Out. This ain\'t free real estate!!!')
+    connections[code].filter(v => v !== ws).forEach(v => v.send(msgAsStr))
   })
   activeConnections++;
-  ws.on('close',()=>activeConnections--)
+  ws.on('close', () => activeConnections--)
   ws.send('+READY+')
 });
 
-app.use('/c/*',(rq,rs)=>rs.send('Failed to connect to Socket (Attemtped non-socket connection to /c/*?)'))
+app.use('/c/*', (rq, rs) => rs.send('Failed to connect to Socket (Attemtped non-socket connection to /c/*?)'))
 
-app.use('/active-connections',(rq,rs)=>rs.send(activeConnections.toString()))
+app.use('/active-connections', (rq, rs) => rs.send(activeConnections.toString()))
 
 const random = (length = 8) => {
   // Declare all characters
@@ -65,11 +65,11 @@ app.use('/get-connection-code', (rq, rs) => {
   }
   const header = getHashed('X-Client-Ip') ?? getHashed('Fluxus-Fingerprint') ?? getHashed('SW-Fingerprint') ?? getHashed('SW-User-Identifier') ?? getHashed('Fingerprint') ?? getHashed('Syn-Fingerprint')
   if (header)
-    rs.send(crypto.createHmac('SHA512',sessionKey).update(header).digest('hex').substring(0,12))
+    rs.send(crypto.createHmac('SHA512', sessionKey).update(header).digest('hex').substring(0, 12))
   else
     rs.send(random(16))
 })
-app.use((rq,rs,nx)=>{
+app.use((rq, rs, nx) => {
   rs.set('Cache-Control', 'public, max-age=2592000')
   nx();
 })
