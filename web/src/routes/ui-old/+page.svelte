@@ -326,11 +326,11 @@ ${script}`
         <span style="display: block;height: 0.5em" />
         <p style="font-size: 1.2em; margin: 0 0;">
           {#each profileList as profileName}
-            <a href="/ui" on:click={() => setProfile(profileName)}
+            <a href="/ui-old/" on:click={() => setProfile(profileName)}
               >{profileName}</a
             >
             <a
-              href="/ui"
+              href="/ui-old/"
               on:click={() => removeProfile(profileName)}
               style="color: #faa; text-decoration: none">🗑</a
             ><br />
