@@ -65,10 +65,16 @@ app.use('/get-connection-code', (rq, rs) => {
     return h ? hash(h) : null;
   }
   const header = getHashed('X-Client-Ip') ?? getHashed('Fluxus-Fingerprint') ?? getHashed('SW-Fingerprint') ?? getHashed('SW-User-Identifier') ?? getHashed('Fingerprint') ?? getHashed('Syn-Fingerprint')
-  if (header)
-    rs.send(crypto.createHmac('SHA512', sessionKey).update(header).digest('hex').substring(0, 12))
+  let code: string;
+  if (rq.get('host')?.match(/(localhost|127\.0\.0\.1)/gui))
+    code = 'astolfoaim-local'
+  else if (header)
+    code = (crypto.createHmac('SHA512', sessionKey).update(header).digest('hex').substring(0, 12))
   else
-    rs.send(random(16))
+    code = (random(16))
+  rs.set('Access-Control-Allow-Origin', '*')
+  if (rq.query.onlyIfExists && (connections[code] ?? []).length === 0) rs.send('!code!')
+  else rs.send(code)
 })
 app.use((rq, rs, nx) => {
   rs.set('Cache-Control', 'public, max-age=2592000')

@@ -1,0 +1,49 @@
+@mixin slidermoment
+{
+  width: 25px;
+  height: 25px;
+  background: rgb(136, 111, 171);
+  cursor: pointer;
+  outline: none;
+  border: none;
+  border-radius: 100%;
+}
+
+.slider
+{
+  background: #35394d;
+  border-radius: 25px;
+  width: calc(100% - 16px);
+  padding: 2px 0;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+
+  &::-webkit-slider-thumb
+  {
+    @include slidermoment;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  &::-moz-range-thumb
+  {
+    @include slidermoment;
+  }
+
+  &::-moz-range-progress
+  {
+    background: rgba(136, 111, 171, 0.5);
+    height: 15px;
+    border-radius: 25px 0 0 25px;
+    opacity: var(--sizePercent);
+  }
+
+  &.radiusBehaviour2
+  {
+    &::-moz-range-progress
+    {
+      border-radius: 25px;
+    }
+  }
+}

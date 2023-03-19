@@ -30,7 +30,7 @@ end
 
 ---------------------------------------
 -- BUILD | DO NOT CHANGE
-local build = 'RELEASE/0.5.0'
+local build = 'RELEASE/0.6.0'
 ---------------------------------------
 -- settings:
 local fovRadius = 180
@@ -68,7 +68,7 @@ local limitRaycastToCircle = false -- FPS Optimization: Only Raycast within circ
 
 -- Zero Smoothing Precision | Improves accuracy on smoothing=0 by running multiple rounds per frame, may increase lag, only works on mousemoverel
 local zeroPrecision = not getgenv().__astolfoaim_disable_zero_precision
-local zeroPrecisionRecursionCount = getgenv().__astolfoaim_zero_precision_recursion_count or 0
+local recursionCount = getgenv().__astolfoaim_zero_precision_recursion_count or 0
 
 local maximumPixelsPerSecond = 10000
 local maximumPixelsPerFrame = 1000
@@ -76,7 +76,7 @@ local maximumPixelsPerFrame = 1000
 local onlyTriggerBotWhileRMB = true
 local minimumRMBHoldTime = 1 / 4
 
-local finalDiv = 0.5
+local finalDiv = 1
 
 local hackulaSupport = false -- arsenal only, can flag or error elsewhere
 
@@ -717,10 +717,10 @@ local function SetAimbotState(state, setIsTeamed)
               if typeof(i) == 'nil' then
                 i = math.huge
               end
-              if typeof(zeroPrecisionRecursionCount) == 'nil' then
-                zeroPrecisionRecursionCount = 0
+              if typeof(recursionCount) == 'nil' then
+                recursionCount = 0
               end
-              if zeroPrecision and zeroPrecisionRecursionCount > 0 and i < math.min(zeroPrecisionRecursionCount, 32) then
+              if zeroPrecision and recursionCount > 0 and i < math.min(recursionCount, 32) then
                 movement(i + 1)
               end
             end
@@ -976,8 +976,8 @@ local API = setmetatable({
     if k == 'linkaimbotesp' then
       return linkAimbotESP
     end
-    if k == 'zeroprecisionrecursioncount' then
-      return zeroPrecisionRecursionCount
+    if k == 'recursioncount' then
+      return recursionCount
     end
     if k == 'doscopecheck' then
       return doScopeCheck or isPf
@@ -1282,9 +1282,9 @@ local API = setmetatable({
       limitRaycastToCircle = not not v
       return
     end
-    if k == 'zeroprecisionrecursioncount' then
+    if k == 'recursioncount' then
       num(false)
-      zeroPrecisionRecursionCount = v
+      recursionCount = v
       return
     end
     if k == '__minsmoothing' then

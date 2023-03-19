@@ -28,7 +28,9 @@
   },
   "type": "module",
   "dependencies": {
+    "@formkit/auto-animate": "1.0.0-beta.6",
     "highlight.js": "^11.7.0",
+    "svelte-bootstrap-icons": "^2.3.1",
     "svelte-highlight": "^7.2.0"
   }
 }

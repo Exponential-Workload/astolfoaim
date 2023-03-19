@@ -1,17 +1,7 @@
 <script lang="ts">
   import { dev } from '$app/environment';
   import { asyncAlert, asyncConfirm, asyncPrompt } from '$lib/asyncnotif';
-  import Slider from '$lib/Slider/Slider.svelte';
-  import { onDestroy, onMount } from 'svelte';
-  import { loop_guard } from 'svelte/internal';
   import { fly } from 'svelte/transition';
-  import Nl from './Nl.svelte';
-  import UiSlider from './UISlider.svelte';
-  import type { AvailableTab } from './AvailableTab';
-  import Tabs from './Tabs.svelte';
-  import TabItem from './TabItem.svelte';
-  import Checkbox from '$lib/Checkbox/Checkbox.svelte';
-  import Dropdown from '$lib/Dropdown/Dropdown.svelte';
 
   let connectioncode = '';
   let connected = false;
@@ -19,11 +9,6 @@
   let rbxResponded = false;
   let socket: WebSocket | null;
   let notifs: string[] = [];
-  let autoConnect =
-    typeof localStorage !== 'undefined'
-      ? localStorage.getItem('autoconnect')
-      : false;
-
   const log = (prefix: string, text: string) =>
     console.log(`%c${prefix}: %c${text}`, 'color: #888;', 'color: #aaf');
   const showNotif = (text: string) => {
@@ -37,23 +22,16 @@
       notifs.length > 3 ? 2000 : 5000
     );
   };
-  const server = dev
-    ? 'localhost:5595'
-    : typeof location !== 'undefined'
-    ? location.host ?? location.hostname
-    : 'aim.femboy.cafe';
-  const protocol = dev ? 'http://' : 'https://';
   const connect = () => {
     rbxResponded = false;
     connecting = true;
     const socketLocation = `${
       location.protocol.includes('https') ? 'wss' : 'ws'
-    }://${server}/c/${connectioncode}`;
+    }://${
+      dev ? 'localhost:5595' : location.host ?? location.hostname
+    }/c/${connectioncode}`;
     log('Attempt Connection', socketLocation);
     const ws = new WebSocket(socketLocation);
-    if (dev)
-      // @ts-ignore
-      window.Socket = ws;
     ws.onmessage = (event) => {
       let { data } = event;
       log('data', data);
@@ -112,7 +90,7 @@
         };
   let profileList: string[] = JSON.parse(ls.getItem('profile-list') ?? '[]');
   let profileName: string | undefined;
-  type Action =
+  type action =
     | 'fov'
     | 'maxdistance'
     | 'wallcheck'
@@ -136,23 +114,9 @@
     | 'accountforsensitivity'
     | 'maxpixelspersecond'
     | 'maxpixelsperframe'
-    | 'finaldiv'
-    | 'onlytriggerbotwhilermb'
-    | 'triggerbotminimumrmbtime';
-  let currentTab: AvailableTab = 'General';
-  let hasLoadedTab = false;
-  onMount(() => {
-    const t = localStorage.getItem('tab');
-    if (t) currentTab = t as AvailableTab;
-    hasLoadedTab = true;
-  });
-  $: {
-    if (hasLoadedTab) {
-      localStorage.setItem('tab', currentTab);
-    }
-  }
-  let profile: Partial<Record<Action, any>> | undefined;
-  const actions: Record<Action, (value: any) => string> = {
+    | 'finaldiv';
+  let profile: Partial<Record<action, any>> | undefined;
+  const actions: Record<action, (value: any) => string> = {
     fov: (value: number) => `api.fov=${value};`,
     maxdistance: (value: number) => `api.maxdistance=${value};`,
     keybindtoggle: (value: boolean) => `api.keybindtoggle=${value};`,
@@ -181,10 +145,6 @@
     maxpixelspersecond: (value: number) =>
       `api.maximumPixelsPerSecond=${value};`,
     finaldiv: (value: number) => `api.finaldiv=${Number(value)};`,
-    onlytriggerbotwhilermb: (value: boolean) =>
-      `api.onlytriggerbotwhilermb=${value};`,
-    triggerbotminimumrmbtime: (value: number) =>
-      `api.triggerbotminimumrmbtime=${value};`,
   };
   const addProfile = async (name?: string | null | void) => {
     name =
@@ -207,25 +167,25 @@
     const isUsingPcall =
       typeof localStorage === 'undefined' ||
       localStorage.getItem('avoidpcall') !== 'true';
-    if (!profile) return;
     console.log('pcall:', isUsingPcall);
     let script = '';
     for (const action in actions) {
-      const getScript = actions[action as Action];
-      const value = profile[action as Action];
-      if (typeof value !== 'undefined') {
+      const getScript = actions[action as action];
+      const value = document.querySelector(
+        `[data-action="${action}"]`
+      ) as HTMLInputElement;
+      if (value) {
         const part = `--[[${action}]]${
           isUsingPcall ? `pcall` : ''
-        }(function()${getScript(value)}end)${isUsingPcall ? '' : '()'};
+        }(function()${getScript(
+          value.type === 'checkbox' ? value.checked : value.value
+        )}end)${isUsingPcall ? '' : '()'};
 `;
         log('SendRBX Generate', `Add Part for Action ${action}: ${part}`);
         script += part;
       } else
         console.warn(
-          `%cSendRBX Generate: %cCould not find profile['${action.replace(
-            /'/giu,
-            "\\'"
-          )}']`,
+          `%cSendRBX Generate: %cCould not find data-action=${action}`,
           'color: #d7b600;',
           'color: inherit;'
         );
@@ -274,129 +234,32 @@ ${script}`
       limitraycasttocircle: false,
       accountforsensitivity: true,
       finaldiv: 1,
-      maxpixelspersecond: 5000,
-      maxpixelsperframe: 4000,
+      maxpixelspersecond: 2000,
+      maxpixelsperframe: 2000,
       aimTarget: 'Head',
       additionalsmoothing: 0,
-      onlytriggerbotwhilermb: true,
-      triggerbotminimumrmbtime: 1 / 4,
       ...profile,
     };
-    const searchResult = baseTargetItems.find(
-      (item) => profile?.aimTarget === (item.value ?? item.name)
-    );
-    targetItem = searchResult ?? {
-      name: `${profile?.aimTarget} (Custom)`,
-      value: profile?.aimTarget,
-    };
-    if (searchResult) customTargetItem = undefined;
-    else customTargetItem = targetItem;
-    setTimeout(sendRbx, 300);
+    setTimeout(sendRbx, 500);
   };
   const unsetProfile = () => {
     profile = undefined;
     profileName = undefined;
-    targetItem = {
-      name: 'Head',
-      value: 'Head',
-    };
   };
-  const apply = (shouldShowNotif: boolean = true) =>
-    setTimeout(() => {
-      log('Profiles', `Save & Send Data on Profile ${profileName}`);
-      ls.setItem('profile-' + profileName, JSON.stringify(profile));
-      sendRbx();
-      if (shouldShowNotif) showNotif('Saved & Sent to Roblox');
-    }, 10);
-  // let hasQueuedChange = false;
-  let queueId = 0;
+  const apply = (shouldShowNotif: boolean = true) => {
+    log('Profiles', `Save & Send Data on Profile ${profileName}`);
+    ls.setItem('profile-' + profileName, JSON.stringify(profile));
+    sendRbx();
+    if (shouldShowNotif) showNotif('Saved & Sent to Roblox');
+  };
+  let hasQueuedChange = false;
   const changed = () => {
-    // if (hasQueuedChange) return;
-    // hasQueuedChange = true;
-    const ourQueueId = ++queueId;
+    if (hasQueuedChange) return;
+    hasQueuedChange = true;
     setTimeout(() => {
-      if (ourQueueId === queueId) {
-        apply(false);
-        queueId--;
-      }
-      // hasQueuedChange = false;
-    }, 300);
-  };
-  $: {
-    if (connected && autoConnect) {
-      rbxResponded = true;
-      if (profileList[0]) setProfile(profileList[0]);
-    }
-  }
-  let i: ReturnType<typeof setTimeout>;
-  let d = 10000;
-  let c = 0;
-  const updateCode = async () => {
-    if (!connected && !connectioncode) {
-      c++;
-      const rs = await fetch(
-        `${protocol}${server}/get-connection-code?onlyIfExists=true`
-      );
-      const rst = await rs.text();
-      if (rst === '!code!') return;
-      else connectioncode = rst;
-    }
-    i = setTimeout(updateCode, d);
-    if (c > 10 && d < 60000) {
-      d = d + 1000;
-      c = 7;
-    }
-  };
-  onMount(async () => {
-    i = setTimeout(updateCode, 10000);
-    await updateCode();
-    if (autoConnect) {
-      if (!connectioncode) connectioncode = '1';
-      connect();
-    }
-  });
-  onDestroy(() => {
-    clearTimeout(i);
-    if (socket) socket.close();
-  });
-  const baseTargetItems = [
-    {
-      name: 'Head',
-      value: 'Head',
-    },
-    {
-      name: 'Torso (R6)',
-      value: 'Torso',
-    },
-    {
-      name: 'UpperTorso (R15)',
-      value: 'UpperTorso',
-    },
-    {
-      name: 'LowerTorso (R15)',
-      value: 'LowerTorso',
-    },
-  ];
-  let customTargetItem:
-    | {
-        name: string;
-        value: string;
-      }
-    | undefined = undefined;
-  $: targetItems = [
-    ...baseTargetItems,
-    ...(customTargetItem ? [customTargetItem] : []),
-    {
-      name: 'Custom',
-      value: 'create_new',
-    },
-  ];
-  let targetItem = {
-    name: 'Head',
-    value: 'Head',
-  } as {
-    name: string;
-    value: string;
+      apply(false);
+      hasQueuedChange = false;
+    }, 500);
   };
 </script>
 
@@ -482,213 +345,365 @@ ${script}`
       {:else}
         <h1>Profile {profileName}</h1>
         <div style="font-size: 1.2em">
-          <Nl />
-          <Tabs bind:value={currentTab}>
-            <TabItem {currentTab} tab="General">
-              <UiSlider
-                on:changed={changed}
-                bind:value={profile.smoothing}
-                max={0.99}
-                step={0.01}
-                name="Smoothing"
-                unit="/1"
-              />
-            </TabItem>
-            <TabItem {currentTab} tab="General">
-              <UiSlider
-                on:changed={changed}
-                bind:value={profile.jitter}
-                max={6}
-                step={1}
-                name="Jitter"
-                unit=" Pixels"
-              />
-            </TabItem>
-            <TabItem {currentTab} tab="General">
-              <UiSlider
-                on:changed={changed}
-                bind:value={profile.maxdistance}
-                max={4096}
-                step={1}
-                name="Maximum Distance"
-                unit=" Stud{profile.maxdistance === 1 ? '' : 's'}"
-              />
-              <Nl />
-              <label for="" style="margin-bottom: 0.2em;display:block;"
-                >Aim Target</label
+          <br />
+          <label for="fov">FOV</label>
+          <input
+            type="number"
+            name="fov"
+            id="fov"
+            data-action="fov"
+            min="5"
+            bind:value={profile.fov}
+            on:change={changed}
+          />
+          <br />
+          <label for="maxdistance">Max Dist</label>
+          <input
+            type="number"
+            name="maxdistance"
+            id="maxdistance"
+            data-action="maxdistance"
+            min="0"
+            bind:value={profile.maxdistance}
+            on:change={changed}
+          />
+          <div style={`display:${profile.usemousemove ? 'contents' : 'none'}`}>
+            <br />
+            <label for="finaldiv">
+              Div
+              <!-- svelte-ignore a11y-invalid-attribute -->
+              <a
+                href="javascript:void 0;"
+                on:keypress={(e) =>
+                  asyncAlert(
+                    e.currentTarget.getAttribute('data-helptext') ??
+                      'oops an error occurred'
+                  )}
+                on:click={(e) =>
+                  asyncAlert(
+                    e.currentTarget.getAttribute('data-helptext') ??
+                      'oops an error occurred'
+                  )}
+                data-helptext={`Amount to divide the final pixel count by.<br/>
+If you get a lot of weird shaking/apparent additional jitter, increasing this may fix it.<br/>
+Try increasing this if your pointer (NOT CIRCLE) seems a bit more delayed than it should be.`}
               >
-              <Dropdown
-                items={targetItems}
-                bind:value={targetItem}
-                on:changed={async (e) => {
-                  if (e.detail === 'create_new') {
-                    const target = await asyncPrompt(
-                      'What Aim Target do you want?'
-                    );
-                    customTargetItem = {
-                      name: target + ' (Custom)',
-                      value: target,
-                    };
-                    targetItem = customTargetItem;
-                  } else {
-                    targetItem = targetItems.find(
-                      (item) => (item.value ?? item.name) === e.detail
-                    ) ?? {
-                      name: e.detail,
-                      value: e.detail,
-                    };
+                (help)
+              </a>
+            </label>
+            <input
+              type="number"
+              name="finaldiv"
+              id="finaldiv"
+              data-action="finaldiv"
+              min="0.01"
+              bind:value={profile.finaldiv}
+              on:change={changed}
+            />
+          </div>
+          <br />
+          <label for="wallcheck">Wall Check</label>
+          <input
+            type="checkbox"
+            name="wallcheck"
+            id="wallcheck"
+            data-action="wallcheck"
+            bind:checked={profile.wallcheck}
+            on:change={changed}
+          />
+          <span class="check">&ZeroWidthSpace;</span>
+          <br />
+          <label for="triggerbot">Triggerbot</label>
+          <input
+            type="checkbox"
+            name="triggerbot"
+            id="triggerbot"
+            data-action="triggerbot"
+            bind:checked={profile.triggerbot}
+            on:change={changed}
+          />
+          <span class="check">&ZeroWidthSpace;</span>
+          <br />
+          <label for="keybindtoggle">Keybind Toggle</label>
+          <input
+            type="checkbox"
+            name="keybindtoggle"
+            id="keybindtoggle"
+            data-action="keybindtoggle"
+            bind:checked={profile.keybindtoggle}
+            on:change={changed}
+          />
+          <span class="check">&ZeroWidthSpace;</span>
+          <br />
+          <label for="accountforsensitivity">Account for Sensitivity</label>
+          <input
+            type="checkbox"
+            name="accountforsensitivity"
+            id="accountforsensitivity"
+            data-action="accountforsensitivity"
+            bind:checked={profile.accountforsensitivity}
+            on:change={changed}
+          />
+          <span class="check">&ZeroWidthSpace;</span>
+          <br />
+          <div
+            style={`display: ${
+              typeof localStorage !== 'undefined' &&
+              localStorage.getItem('showdotesp') === 'true'
+                ? 'inline'
+                : 'none'
+            }`}
+          >
+            <label for="esp">Dot ESP (CAN LAG)</label>
+            <input
+              type="checkbox"
+              name="esp"
+              id="esp"
+              data-action="esp"
+              bind:checked={profile.esp}
+              on:change={changed}
+            />
+            <span class="check">&ZeroWidthSpace;</span>
+            <br />
+            <label for="linkaimbotesp">Link Aimbot &amp; Dot ESP</label>
+            <input
+              type="checkbox"
+              name="linkaimbotesp"
+              id="linkaimbotesp"
+              data-action="linkaimbotesp"
+              bind:checked={profile.linkaimbotesp}
+              on:change={changed}
+            />
+            <span class="check">&ZeroWidthSpace;</span>
+            <div style={`display: ${profile.esp ? 'inline' : 'none'};`}>
+              <br />
+              <label for="legitesp">Legit ESP</label>
+              <input
+                type="checkbox"
+                name="legitesp"
+                id="legitesp"
+                data-action="legitesp"
+                bind:checked={profile.legitesp}
+                on:change={changed}
+              />
+              <span class="check">&ZeroWidthSpace;</span>
+            </div>
+            <br />
+          </div>
+          <label for="hlesp">(NOT STREAMPROOF) Highlight ESP</label>
+          <input
+            type="checkbox"
+            name="hlesp"
+            id="hlesp"
+            data-action="hlesp"
+            bind:checked={profile.hlesp}
+            on:change={changed}
+          />
+          <span class="check">&ZeroWidthSpace;</span>
+          <div style={`display: ${profile.hlesp ? 'inline' : 'none'};`}>
+            <br />
+            <label for="legithlesp">Legit ESP</label>
+            <input
+              type="checkbox"
+              name="legithlesp"
+              id="legithlesp"
+              data-action="legithlesp"
+              bind:checked={profile.legithlesp}
+              on:change={changed}
+            />
+            <span class="check">&ZeroWidthSpace;</span>
+          </div>
+          <br />
+          <label for="limitraycasttocircle">Only Raycast within Circle</label>
+          <input
+            type="checkbox"
+            name="limitraycasttocircle"
+            id="limitraycasttocircle"
+            data-action="limitraycasttocircle"
+            bind:checked={profile.limitraycasttocircle}
+            on:change={changed}
+          />
+          <span class="check">&ZeroWidthSpace;</span>
+          <br />
+          <label for="usemousemove"
+            >Use mousemoverel (if off, uses camera)</label
+          >
+          <input
+            type="checkbox"
+            name="usemousemove"
+            id="usemousemove"
+            data-action="usemousemove"
+            bind:checked={profile.usemousemove}
+            on:change={changed}
+          />
+          <span class="check">&ZeroWidthSpace;</span>
+          <br />
+          <label for="teamed">Team Check</label>
+          <input
+            type="checkbox"
+            name="teamed"
+            id="teamed"
+            data-action="teamed"
+            bind:checked={profile.teamed}
+            on:change={changed}
+          />
+          <span class="check">&ZeroWidthSpace;</span>
+          <br />
+          <label for="aimTarget">Aim Part</label>
+          <select
+            name="aimTarget"
+            id="aimTarget"
+            data-action="aimTarget"
+            style="padding: 8px 8px; background: #1e2030; border: none; color: #dedede;"
+            bind:value={profile.aimTarget}
+            on:change={(self) => {
+              // const target = self.currentTarget;
+              if (profile?.aimTarget === 'customvalue')
+                asyncPrompt(
+                  'What instance name do you wish to use? (CASE SENSITIVIE)',
+                  undefined,
+                  'Confirm',
+                  'Cancel'
+                ).then((val) => {
+                  if (val) {
+                    // @ts-ignore
+                    profile.aimTarget = val;
+                    // target.value = val;
+                    changed();
                   }
-                  (profile ?? {}).aimTarget =
-                    targetItem.value ?? targetItem.name;
-                  changed();
-                }}
-              />
-            </TabItem>
-            <TabItem {currentTab} tab="General" hcenter vcenter>
-              <Checkbox
-                bind:checked={profile.keybindtoggle}
-                on:changed={changed}
+                });
+              else changed();
+            }}
+          >
+            <option value="Head">Head</option>
+            <option value="Torso">Torso (R6)</option>
+            <option value="UpperTorso">UpperTorso (R15)</option>
+            <option value="LowerTorso">LowerTorso (R15)</option>
+            {#if !['head', 'torso', 'uppertorso', 'lowertorso', 'customvalue'].includes((profile.aimTarget ?? 'Head').toLowerCase())}
+              <option value={profile.aimTarget}
+                >{profile.aimTarget} (Custom)</option
               >
-                Keybind Is Toggle
-              </Checkbox>
-            </TabItem>
-            <TabItem {currentTab} tab="FOV">
-              <UiSlider
-                on:changed={changed}
-                bind:value={profile.fov}
-                min={16}
-                max={2160}
-                step={1}
-                name="FOV Radius"
-                unit="px"
-              />
-            </TabItem>
-            <TabItem {currentTab} tab="FOV">
-              <UiSlider
-                on:changed={changed}
-                bind:value={profile.circlesides}
-                min={3}
-                max={128}
-                step={1}
-                name="Circle Sides"
-                unit=" Sides"
-              />
-            </TabItem>
-            <TabItem {currentTab} tab="ESP" vcenter hcenter>
-              <Checkbox bind:checked={profile.hlesp} on:changed={changed}>
-                Highlight ESP&nbsp;
-                <span style="opacity:0.5">- Not OBS-Proof</span>
-              </Checkbox>
-              <Checkbox bind:checked={profile.legithlesp} on:changed={changed}
-                >Legit ESP</Checkbox
-              >
-              {#if typeof localStorage !== 'undefined' && localStorage.getItem('showdotesp') === 'true'}
-                <h4 style="margin: 0 0;">Deprecated: DotESP</h4>
-                <Checkbox bind:checked={profile.esp} on:changed={changed}>
-                  Dot ESP&nbsp;
-                  <span style="opacity:0.5">- OBS-Proof - LAG</span>
-                </Checkbox>
-                <Checkbox bind:checked={profile.legitesp} on:changed={changed}
-                  >Legit ESP</Checkbox
-                >
-              {/if}
-            </TabItem>
-            <TabItem {currentTab} tab="Trigger Bot" hcenter vcenter>
-              <Checkbox bind:checked={profile.triggerbot} on:changed={changed}>
-                Trigger Bot
-              </Checkbox>
-              <Checkbox
-                bind:checked={profile.onlytriggerbotwhilermb}
-                on:changed={changed}
-              >
-                Limit to while RMB is held
-              </Checkbox>
-            </TabItem>
-            <TabItem {currentTab} tab="Trigger Bot">
-              <UiSlider
-                on:changed={changed}
-                bind:value={profile.triggerbotminimumrmbtime}
-                min={0.1}
-                max={0.9}
-                step={0.01}
-                name="Minimum RMB Time"
-                unit=" Seconds"
-              />
-            </TabItem>
-            <TabItem {currentTab} tab="Advanced">
-              <UiSlider
-                on:changed={changed}
-                bind:value={profile.refreshcap}
-                min={0.01}
-                max={0.3}
-                step={0.01}
-                name="Min. Update Delta"
-                unit=" Seconds"
-              />
-              {#if profile.usemousemove}
-                <UiSlider
-                  on:changed={changed}
-                  bind:value={profile.maxpixelsperframe}
-                  min={1}
-                  max={4000}
-                  step={1}
-                  name="Max. Pixels"
-                  unit=" Pixel{profile.maxpixelsperframe === 1
-                    ? ''
-                    : 's'}/Frame"
-                />
-                <UiSlider
-                  on:changed={changed}
-                  bind:value={profile.maxpixelspersecond}
-                  min={1}
-                  max={5000}
-                  step={1}
-                  name="Max. Pixels"
-                  unit=" Pixel{profile.maxpixelsperframe === 1 ? '' : 's'}/Sec"
-                />
-                <UiSlider
-                  on:changed={changed}
-                  bind:value={profile.finaldiv}
-                  min={0.1}
-                  max={5}
-                  step={0.1}
-                  name="Pixel Divider"
-                  unit=""
-                />
-                <UiSlider
-                  on:changed={changed}
-                  bind:value={profile.recursionCount}
-                  min={0}
-                  max={8}
-                  step={1}
-                  name="Recursion Steps"
-                  unit=" Step{profile.recursionCount === 1 ? '' : 's'}"
-                />
-              {/if}
-            </TabItem>
-            <TabItem {currentTab} tab="Advanced" vcenter hcenter>
-              {#if profile.usemousemove}
-                <Checkbox
-                  bind:checked={profile.accountforsensitivity}
-                  on:changed={changed}
-                >
-                  Account for Sensitivity
-                </Checkbox>
-              {/if}
-              <Checkbox
-                bind:checked={profile.limitraycasttocircle}
-                on:changed={changed}
-              >
-                Only Raycast in Circle
-              </Checkbox>
-              <Checkbox
-                bind:checked={profile.usemousemove}
-                on:changed={changed}
-              >
-                Use mousemoverel
-              </Checkbox>
-            </TabItem>
-          </Tabs>
+            {/if}
+            <option value="customvalue">Custom Value</option>
+          </select>
+          <br />
+          <hr />
+          <label for="smoothing">Smoothing</label><br />
+          <input
+            type="range"
+            name="smoothing"
+            id="smoothing"
+            data-action="smoothing"
+            min="0"
+            max="0.95"
+            step="0.01"
+            bind:value={profile.smoothing}
+            on:change={changed}
+          />
+          <br />
+          <small class="infothing">{profile.smoothing}</small>
+          <div
+            style={`display: ${
+              profile.usemousemove ? 'block;opacity:1' : 'none;opacity:0'
+            };transition:1s`}
+          >
+            <label
+              for="recursionCount"
+              title="Repeats the mousemove multiple times per frame, as to allow more accurate movement tracking when 0 smoothing overshoots. Experiment with this value a bit if necessary."
+              >(Blatant + BETA) Recursion Steps</label
+            ><br />
+            <input
+              type="range"
+              name="recursionCount"
+              id="recursionCount"
+              data-action="recursionCount"
+              min="0"
+              max="8"
+              step="1"
+              bind:value={profile.recursionCount}
+              on:change={changed}
+            />
+            <br />
+            <small class="infothing"
+              >{profile.recursionCount} recursion{profile.recursionCount === 1
+                ? ''
+                : 's'}</small
+            >
+            <label for="jitter">Jitter</label><br />
+            <input
+              type="range"
+              name="jitter"
+              id="jitter"
+              data-action="jitter"
+              min="0"
+              max="25"
+              step="0.5"
+              bind:value={profile.jitter}
+              on:change={changed}
+            />
+            <br />
+            <small class="infothing"
+              >{profile.jitter} pixel{profile.jitter === 1 ? '' : 's'}</small
+            >
+            <label for="maxpixelsperframe">Maximum Pixels per Frame</label><br
+            />
+            <input
+              type="range"
+              name="maxpixelsperframe"
+              id="maxpixelsperframe"
+              data-action="maxpixelsperframe"
+              min="1"
+              max={Math.max(profile.fov + 16, 512)}
+              step="1"
+              bind:value={profile.maxpixelsperframe}
+              on:change={changed}
+            />
+            <br />
+            <small class="infothing"
+              >{profile.maxpixelsperframe} pixel{profile.maxpixelsperframe === 1
+                ? ''
+                : 's'}</small
+            >
+            <label for="maxpixelspersecond">Maximum Pixels per Second</label><br
+            />
+            <input
+              type="range"
+              name="maxpixelspersecond"
+              id="maxpixelspersecond"
+              data-action="maxpixelspersecond"
+              min="1"
+              max="5000"
+              step="1"
+              bind:value={profile.maxpixelspersecond}
+              on:change={changed}
+            />
+            <br />
+            <small class="infothing"
+              >{profile.maxpixelspersecond} pixel{profile.maxpixelspersecond ===
+              1
+                ? ''
+                : 's'}</small
+            >
+          </div>
+          <label for="refreshcap"
+            >Minimum Update Time (lower=more responsive but more calculations)</label
+          ><br />
+          <input
+            type="range"
+            name="refreshcap"
+            id="refreshcap"
+            data-action="refreshcap"
+            min="0.004"
+            max="0.1"
+            step="0.004"
+            bind:value={profile.refreshcap}
+            on:change={changed}
+          />
+          <br />
+          <small class="infothing">
+            {profile.refreshcap}s
+          </small>
+          <br />
           <button
             on:click={() => apply(true)}
             style="background: #886fab;"

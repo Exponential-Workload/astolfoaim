@@ -19,5 +19,6 @@ local script = game:HttpGetAsync(url)
 local api = loadstring(script,'wui')('web-ui');
 -- interact with api here if you so desire
 ```
+(On Script-Ware, you can also simply use `getgenv().getgenv().try_local_astolfoaim_devserver=true;import(5311)`)
 
 This will attempt to use the local build of AstolfoAim, alongside, if available, a [local socket server](../server/).

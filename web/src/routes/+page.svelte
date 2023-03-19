@@ -34,15 +34,34 @@ No strings attached."
         <br />
         //
         <a href="/links">Links</a> //
+        <span class="nosmol"
+          ><a href="https://nexuspipe.com">NexusPIPE</a> //</span
+        >
         <a href="/media">Media</a> //
       </p>
-      <a href="https://nexuspipe.com?utm_source=astolfoaim"><img class="nobig" style="position:fixed;bottom:0;left:50vw;transform:translate(-50%,0);max-width: 50vw;max-height: 30vh;" src="https://cdn.discordapp.com/attachments/1068827149848559637/1086683614344921088/pipe.png" alt="buy nexuspipe now for high-quality L3/L7 DDOS protection - click here" /></a>
+      <a href="https://nexuspipe.com?utm_source=astolfoaim"
+        ><img
+          class="nobig"
+          style="position:fixed;bottom:0;left:50vw;transform:translate(-50%,0);max-width: 50vw;max-height: 30vh;"
+          src="https://cdn.discordapp.com/attachments/1068827149848559637/1086683614344921088/pipe.png"
+          alt="buy nexuspipe now for high-quality L3/L7 DDOS protection - click here"
+        /></a
+      >
     </div>
   </section>
 </main>
 
 <style lang="scss">
-  @media screen and (max-width: 900px) {.nobig{display:none;}}
+  @media screen and (min-height: 550px) {
+    .nosmol {
+      display: none;
+    }
+  }
+  @media screen and (max-height: 550px) {
+    .nobig {
+      display: none;
+    }
+  }
   // https://github.com/YieldingFluxus/fluxuswebsite/blob/main/src/Routes/index.scss
   @mixin title($a: rgb(141, 115, 176), $b: #c7a0f66b) {
     // webkit
