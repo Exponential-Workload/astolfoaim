@@ -30,7 +30,7 @@ end
 
 ---------------------------------------
 -- BUILD | DO NOT CHANGE
-local build = 'PROD/0.4.2'
+local build = 'BETA/0.5.0'
 ---------------------------------------
 -- settings:
 local fovRadius = 180
@@ -72,6 +72,8 @@ local zeroPrecisionRecursionCount = getgenv().__astolfoaim_zero_precision_recurs
 
 local maximumPixelsPerSecond = 10000
 local maximumPixelsPerFrame = 1000
+
+local onlyTriggerBotWhileRMB = true
 
 local finalDiv = 0.5
 
@@ -712,7 +714,13 @@ local function SetAimbotState(state, setIsTeamed)
             end
           end
           local wtvp = ws.CurrentCamera:WorldToViewportPoint(aimPos)
-          if triggerBot and targetVisible then
+          local shouldTriggerBot = true
+          if onlyTriggerBotWhileRMB then
+            if not uis:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+              shouldTriggerBot = false
+            end
+          end
+          if triggerBot and targetVisible and shouldTriggerBot then
             print(
               (
                 Vector2.new(wtvp.X, wtvp.Y)
@@ -965,6 +973,9 @@ local API = setmetatable({
     if k == 'accountforsensitivity' then
       return useMouseSensitivity
     end
+    if k == 'onlytriggerbotwhilermb' then
+      return onlyTriggerBotWhileRMB
+    end
     if k == 'finaldiv' then
       return finalDiv
     end
@@ -1110,6 +1121,10 @@ local API = setmetatable({
     end
     if k == 'legitesp' then
       legitESP = not not v
+      return
+    end
+    if k == 'onlytriggerbotwhilermb' then
+      onlyTriggerBotWhileRMB = not not v
       return
     end
     if k == 'legithlesp' then
