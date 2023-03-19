@@ -1193,6 +1193,7 @@ local API = setmetatable({
     if k == 'circlesides' then
       num(true)
       circleSides = v or 42
+      circle.NumSides = circleSides
       return
     end
     if k == 'refreshcap' then
