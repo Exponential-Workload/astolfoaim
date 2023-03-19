@@ -736,7 +736,6 @@ local function SetAimbotState(state, setIsTeamed)
           local wtvp = ws.CurrentCamera:WorldToViewportPoint(aimPos)
           local shouldTriggerBot = true
           if onlyTriggerBotWhileRMB and not isMousePressed then
-            print 'ntb'
             shouldTriggerBot = false
           end
           -- if triggerBot and targetVisible and shouldTriggerBot then
