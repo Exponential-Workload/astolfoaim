@@ -30,7 +30,7 @@ end
 
 ---------------------------------------
 -- BUILD | DO NOT CHANGE
-local build = 'BETA/0.5.0'
+local build = 'RELEASE/0.5.0'
 ---------------------------------------
 -- settings:
 local fovRadius = 180
@@ -74,6 +74,7 @@ local maximumPixelsPerSecond = 10000
 local maximumPixelsPerFrame = 1000
 
 local onlyTriggerBotWhileRMB = true
+local minimumRMBHoldTime = 1 / 4
 
 local finalDiv = 0.5
 
@@ -220,6 +221,25 @@ determinePFSensitivity()
 local finalHook = function(type, value) -- type='x'|'y', value: int pixels
   return value
 end
+---------------------------------------
+local isMousePressed = uis:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
+local _isMousePressedID = 0
+uis.InputBegan:Connect(function(input)
+  if input.UserInputType == Enum.UserInputType.MouseButton2 then
+    local id = _isMousePressedID + 1
+    _isMousePressedID = id
+    task.wait(minimumRMBHoldTime)
+    if _isMousePressedID == id then
+      isMousePressed = true
+    end
+  end
+end)
+uis.InputEnded:Connect(function(input)
+  if input.UserInputType == Enum.UserInputType.MouseButton2 then
+    _isMousePressedID = _isMousePressedID + 1
+    isMousePressed = false
+  end
+end)
 ---------------------------------------
 local hls = {}
 local espdrawings = {}
@@ -686,7 +706,7 @@ local function SetAimbotState(state, setIsTeamed)
                 -- print(v, val, '->', rt)
                 return rt
               end
-              print(fx, rX, pfs, progress, '=>', smoothing, '+', minSmoothing)
+              -- print(fx, rX, pfs, progress, '=>', smoothing, '+', minSmoothing)
               mousemoverel(handleMinMax(fx) / finalDiv, handleMinMax(fy) / finalDiv)
               -- local newTPos = ws.CurrentCamera:WorldToViewportPoint(aimPos)
               -- local newMX = mouse.X
@@ -715,20 +735,19 @@ local function SetAimbotState(state, setIsTeamed)
           end
           local wtvp = ws.CurrentCamera:WorldToViewportPoint(aimPos)
           local shouldTriggerBot = true
-          if onlyTriggerBotWhileRMB then
-            if not uis:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
-              shouldTriggerBot = false
-            end
+          if onlyTriggerBotWhileRMB and not isMousePressed then
+            print 'ntb'
+            shouldTriggerBot = false
           end
-          if triggerBot and targetVisible and shouldTriggerBot then
-            print(
-              (
-                Vector2.new(wtvp.X, wtvp.Y)
-                - (useDesynchronizedThreads and Vector2.new(mouse.X, mouse.Y) or uis:GetMouseLocation())
-              ).Magnitude < 7
-            )
-          end
-          if triggerBot and targetVisible and _doClick then
+          -- if triggerBot and targetVisible and shouldTriggerBot then
+          --   print(
+          --     (
+          --       Vector2.new(wtvp.X, wtvp.Y)
+          --       - (useDesynchronizedThreads and Vector2.new(mouse.X, mouse.Y) or uis:GetMouseLocation())
+          --     ).Magnitude < 7
+          --   )
+          -- end
+          if triggerBot and targetVisible and shouldTriggerBot and _doClick then
             local wtvp = ws.CurrentCamera:WorldToViewportPoint(aimPos)
             if
               (
@@ -973,6 +992,9 @@ local API = setmetatable({
     if k == 'accountforsensitivity' then
       return useMouseSensitivity
     end
+    if k == 'triggerbotminimumrmbtime' then
+      return minimumRMBHoldTime
+    end
     if k == 'onlytriggerbotwhilermb' then
       return onlyTriggerBotWhileRMB
     end
@@ -1125,6 +1147,14 @@ local API = setmetatable({
     end
     if k == 'onlytriggerbotwhilermb' then
       onlyTriggerBotWhileRMB = not not v
+      return
+    end
+    if k == 'triggerbotminimumrmbtime' then
+      num(true)
+      if typeof(v) == 'nil' then
+        v = 1 / 4
+      end
+      minimumRMBHoldTime = v
       return
     end
     if k == 'legithlesp' then
