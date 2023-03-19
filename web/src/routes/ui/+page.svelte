@@ -846,6 +846,7 @@ repeat task.wait() until isDone; return 'Assigned to: '..tostring(isDone);
       overflow-y: auto;
       overflow-x: hidden;
       max-height: calc(100vh - 20px);
+      padding: 0 10px;
     }
     h1 {
       @include title;

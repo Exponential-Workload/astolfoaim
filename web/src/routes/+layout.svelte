@@ -105,4 +105,17 @@
       font-weight: 700;
     }
   }
+  :global(*)::-webkit-scrollbar {
+    width: 6px; /* width of the entire scrollbar */
+  }
+
+  :global(*)::-webkit-scrollbar-track {
+    background: #24273a33; /* color of the tracking area */
+    border-radius: 20px;
+  }
+
+  :global(*)::-webkit-scrollbar-thumb {
+    background-color: #5f4d77; /* color of the scroll thumb */
+    border-radius: 20px; /* roundness of the scroll thumb */
+  }
 </style>
