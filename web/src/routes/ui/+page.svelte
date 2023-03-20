@@ -552,6 +552,16 @@ ${script}`
                 Keybind Is Toggle
               </Checkbox>
             </TabItem>
+            <TabItem {currentTab} tab="General" hcenter vcenter>
+              <Checkbox bind:checked={profile.wallcheck} on:changed={changed}>
+                Wallcheck
+              </Checkbox>
+            </TabItem>
+            <TabItem {currentTab} tab="General" hcenter vcenter>
+              <Checkbox bind:checked={profile.teamed} on:changed={changed}>
+                Teamcheck
+              </Checkbox>
+            </TabItem>
             <TabItem {currentTab} tab="FOV">
               <UiSlider
                 on:changed={changed}
