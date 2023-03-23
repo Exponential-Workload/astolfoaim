@@ -77,7 +77,7 @@ local maximumPixelsPerFrame = 1000
 local onlyTriggerBotWhileRMB = true
 local minimumRMBHoldTime = 1 / 4
 
-local finalDiv = 1
+local finalDiv = 2
 
 local hackulaSupport = false -- arsenal only, can flag or error elsewhere
 

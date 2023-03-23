@@ -233,7 +233,7 @@ ${script}`
       refreshcap: 0.02,
       limitraycasttocircle: false,
       accountforsensitivity: true,
-      finaldiv: 1,
+      finaldiv: 2,
       maxpixelspersecond: 2000,
       maxpixelsperframe: 2000,
       aimTarget: 'Head',
