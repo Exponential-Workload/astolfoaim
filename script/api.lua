@@ -534,12 +534,12 @@ _ScreenGUI.Parent = gethui and gethui() or game:GetService 'CoreGui'
 _ScreenGUI.IgnoreGuiInset = true
 
 task.spawn(function()
-  while task.wait(10) do
+  while task.wait(1) do
     for _, o in pairs(hls) do
       o:Destroy()
     end
     hls = {}
-    if highlightesp then
+    if highlightesp and not isEnabled then
       searchForPlayer()
     end
   end
