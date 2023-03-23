@@ -138,7 +138,10 @@
     | 'maxpixelsperframe'
     | 'finaldiv'
     | 'onlytriggerbotwhilermb'
-    | 'triggerbotminimumrmbtime';
+    | 'triggerbotminimumrmbtime'
+    | 'deathcheck'
+    | 'useHumanoidsShouldDetectPlayersViaFindPlrs'
+    | 'humanoidsearch';
   let currentTab: AvailableTab = 'General';
   let hasLoadedTab = false;
   onMount(() => {
@@ -185,6 +188,10 @@
       `api.onlytriggerbotwhilermb=${value};`,
     triggerbotminimumrmbtime: (value: number) =>
       `api.triggerbotminimumrmbtime=${value};`,
+    deathcheck: (value: boolean) => `api.deathcheck=${value};`,
+    useHumanoidsShouldDetectPlayersViaFindPlrs: (value: boolean) =>
+      `api.useHumanoidsShouldDetectPlayersViaFindPlrs=${value};`,
+    humanoidsearch: (value: boolean) => `api.usefindhumanoids=${value};`,
   };
   const addProfile = async (name?: string | null | void) => {
     name =
@@ -214,9 +221,9 @@
       const getScript = actions[action as Action];
       const value = profile[action as Action];
       if (typeof value !== 'undefined') {
-        const part = `--[[${action}]]${
-          isUsingPcall ? `pcall` : ''
-        }(function()${getScript(value)}end)${isUsingPcall ? '' : '()'};
+        const part = `${isUsingPcall ? `pcall` : ''}(function()${getScript(
+          value
+        )}end)${isUsingPcall ? '' : '()'};
 `;
         log('SendRBX Generate', `Add Part for Action ${action}: ${part}`);
         script += part;
@@ -280,6 +287,9 @@ ${script}`
       additionalsmoothing: 0,
       onlytriggerbotwhilermb: true,
       triggerbotminimumrmbtime: 1 / 4,
+      deathcheck: true,
+      humanoidsearch: false,
+      useHumanoidsShouldDetectPlayersViaFindPlrs: false,
       ...profile,
     };
     const searchResult = baseTargetItems.find(
@@ -551,15 +561,17 @@ ${script}`
               >
                 Keybind Is Toggle
               </Checkbox>
-            </TabItem>
-            <TabItem {currentTab} tab="General" hcenter vcenter>
               <Checkbox bind:checked={profile.wallcheck} on:changed={changed}>
                 Wallcheck
               </Checkbox>
-            </TabItem>
-            <TabItem {currentTab} tab="General" hcenter vcenter>
               <Checkbox bind:checked={profile.teamed} on:changed={changed}>
                 Teamcheck
+              </Checkbox>
+              <Checkbox
+                bind:checked={profile.humanoidsearch}
+                on:changed={changed}
+              >
+                Also Aim at NPCs (BETA)
               </Checkbox>
             </TabItem>
             <TabItem {currentTab} tab="FOV">
@@ -685,6 +697,17 @@ ${script}`
                   Account for Sensitivity
                 </Checkbox>
               {/if}
+              {#if profile.humanoidsearch}
+                <Checkbox
+                  bind:checked={profile.useHumanoidsShouldDetectPlayersViaFindPlrs}
+                  on:changed={changed}
+                >
+                  NPC Searcher use findPlrs()
+                </Checkbox>
+              {/if}
+              <Checkbox bind:checked={profile.deathcheck} on:changed={changed}>
+                Check if player is dead (BETA)
+              </Checkbox>
               <Checkbox
                 bind:checked={profile.limitraycasttocircle}
                 on:changed={changed}

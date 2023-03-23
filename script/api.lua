@@ -16,13 +16,24 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ]=]
 
+local rng = getgenv()._random_number_generator
+  or loadstring(
+    game:HttpGetAsync 'https://gist.githubusercontent.com/Exponential-Workload/593d4b56701133bc827902fe6fdf16a2/raw/random.lua'
+  )()
+
 local plrs = game:GetService 'Players'
 local lp = plrs.LocalPlayer
 local uis = game:GetService 'UserInputService'
 local ws = game:GetService 'Workspace'
 local tms = game:GetService 'Teams'
 local aimInstance = 'Head'
-local moveMouse = mousemoverel
+---Moves the mouse by x,y pixels
+---@param x number
+---@param y number
+---@return nil
+local moveMouse = mousemoverel or function(x, y)
+  error 'No mousemoverel()'
+end
 local mouse = lp:GetMouse()
 
 if not Drawing then
@@ -31,7 +42,7 @@ end
 
 ---------------------------------------
 -- BUILD | DO NOT CHANGE
-local build = 'RELEASE/0.6.0'
+local build = 'RELEASE/0.6.1'
 ---------------------------------------
 -- settings:
 local fovRadius = 180
@@ -61,6 +72,10 @@ local linkAimbotESP = false -- Should we turn ESP off while Aimbot is off? [[ONL
 local legitESP = false -- Should ESP only show players that are visible?   [[ONLY AFFETS DOTESP!                      ]]
 local legitHLESP = false -- Should ESP only show players that are visible? [[ONLY AFFETS HLESP!                       ]]
 
+local useHumanoids = false -- use humanoid/npc loader over player loader
+local useHumanoidsShouldDetectPlayersViaFindPlrs = getgenv()._useHumanoidsShouldDetectPlayersViaGetPlrs
+local deadCheck = true
+
 local pfsens = 'AUTO' -- Phantom Forces Sensitivity | 'AUTO' to automatically attempt to find it; if failed, will default to 1 | NOTE: WE DO NOT ACCOUNT FOR AIM SENSITIVITY MULTIPLIER & ASSUME IT'S AT ONE!!!
 
 local debug = getgenv().__astofloaim_show_debug_info or false -- Should we provide debug information in the top left of the screen
@@ -87,6 +102,8 @@ local useDesynchronizedThreads =
 local doPcall = (not getgenv().__use_pcall) and function(a, ...)
   return true, a(...)
 end or pcall
+---@param func function
+---@return function
 local getPcalledFunction = getgenv().__use_pcall
     and function(func, ...)
       local args = { ... }
@@ -116,21 +133,83 @@ end
 ---------------------------------------
 local isPf = false
 local minSmoothing = 0
+---Checks if the character is alive
+---@param char Model
+---@return boolean
+local isAliveCheck = function(char)
+  local h = char:FindFirstChildOfClass 'Humanoid'
+  if h then
+    return h.Health > 0
+  else
+    return true
+  end
+end
+---Returns a list of Players or {Character=Instance,Team=Team,Name=String} Objects
+---@return Player[]
 local findPlrs = function()
   return plrs:GetPlayers()
 end
+---Finds the Character from the Player
+---@return Model
 local findChar = function(plr)
   return plr.Character
 end
+---Finds a player's team from the plr object
+---@return Team
 local findTeam = function(plr)
   return plr.Team
 end
+---Teamcheck, by default ne(team,ourTteam) | DOES NOT CALL findTeam()
+---@return boolean
 local teamCheck = function(team)
   return team ~= lp.Team
 end
+---Middleware for aimPart, useful in games with weird names to not break UIs
+---@return string
 local mapAimPart = function(aimpart)
   return aimpart
 end
+---Returns a findPlrs-alike list of humanoids. If useHumanoidsShouldDetectPlayersViaFindPlrs is true, it will call findPlrs() for players instead of adding player characters in the same way as NPCs, at the cost of even more performance. This method can be laggy asf.
+local findHumanoids = (function()
+  local npcTeam = Instance.new 'Team'
+  local g = game
+  local ws = g:GetService 'Workspace'
+  local pS = g:GetService 'Players'
+  local gPFC = pS.GetPlayerFromCharacter
+  --local o = 1;
+  return function()
+    local gD = ws:GetDescendants()
+    local h = {}
+    for _, o in pairs(gD) do
+      if o:FindFirstChildOfClass 'Humanoid' then
+        table.insert(h, o)
+      end
+    end
+    --for _,e in pairs(gD) do if o:FindFirstChildOfClass('Humanoid') then table.insert(h,o,e) end end
+    local theZaza = {}
+    for _, o in pairs(h) do
+      local t = npcTeam
+      local gpfcR = gPFC(pS, o)
+      local shouldAdd = true
+      if gpfcR then
+        if useHumanoidsShouldDetectPlayersViaFindPlrs then
+          t = gpfcR.Team
+        else
+          shouldAdd = false
+        end
+      end
+      if shouldAdd then
+        table.insert(theZaza, { ['Character'] = o, ['Team'] = t, ['Name'] = gpfcR and o.Name or o:GetFullName() })
+      end
+    end
+    if useHumanoidsShouldDetectPlayersViaFindPlrs then
+      for _, player in pairs(findPlrs()) do
+        table.insert(theZaza, player)
+      end
+    end
+    return theZaza
+  end
+end)()
 -- PF hacked-in shit:
 if tostring(game.PlaceId) == '292439477' or tostring(game.GameId) == '292439477' then
   isPf = true
@@ -172,7 +251,7 @@ if tostring(game.PlaceId) == '3233893879' then
   findTeam = function(plr)
     return plr
   end
-  teamCheck = function(plr)
+  teamCheck = function(team, plr)
     for _, o in pairs(lp.PlayerGui:GetChildren()) do
       if o.Name == 'NameGui' and o.Adornee:IsDescendantOf(plr.Character) then
         return false
@@ -219,6 +298,10 @@ local determinePFSensitivity = function()
 end
 determinePFSensitivity()
 ---------------------------------------
+---Final hook for mouse x,y movement - by default returns the 2nd argument.
+---@param type "'x'"|"'y'"
+---@param value number
+---@return number
 local finalHook = function(type, value) -- type='x'|'y', value: int pixels
   return value
 end
@@ -242,7 +325,9 @@ uis.InputEnded:Connect(function(input)
   end
 end)
 ---------------------------------------
+--- @type Highlight[]
 local hls = {}
+--- @type table[]
 local espdrawings = {}
 local cachedDrawingObjects = {}
 local cachedDrawingObjectCount = {}
@@ -270,14 +355,17 @@ local collectDrawingObject = function(item, type)
     end
   end)
 end
-local function searchForPlayer()
+---Finds the player to target | Additionally Updates Highlights & a bunch of other shit; effectively the main loop
+---@return Model|nil
+---@return boolean
+local searchForPlayer = function()
   local targetAimPart = mapAimPart(aimInstance)
   local mouseX, mouseY, mouseV2
   local lpchr = findChar(lp)
   local mousePosition = uis:GetMouseLocation()
   local camera = ws.CurrentCamera
   local currentPlayer, currentMagnitude, currentIsVisible
-  local p = findPlrs()
+  local p = useHumanoids and findHumanoids() or findPlrs()
   if hackulaSupport and ws:FindFirstChild 'Map' and ws.Map:FindFirstChild 'Hackula' then
     p = { { Character = ws.Map.Hackula } }
   end
@@ -292,7 +380,7 @@ local function searchForPlayer()
             if not isTeamed then
               teamCheckResult = true
             else
-              teamCheckResult = teamCheck(findTeam(plr))
+              teamCheckResult = teamCheck(findTeam(plr), plr)
             end
             if teamCheckResult then
               hasPlayer = true
@@ -313,11 +401,12 @@ local function searchForPlayer()
     if not isTeamed then
       teamCheckResult = true
     else
-      teamCheckResult = teamCheck(findTeam(plr))
+      teamCheckResult = teamCheck(findTeam(plr), plr)
     end
     if plr ~= lp and teamCheckResult then
       local char = findChar(plr)
-      if char and char:FindFirstChild(targetAimPart, true) then
+      local isAlive = not deadCheck or isAliveCheck(char)
+      if char and char:FindFirstChild(targetAimPart, true) and isAlive then
         -- ESP
         if highlightesp and not hls[plr.Name] then
           local hl = Instance.new 'Highlight'
@@ -406,7 +495,7 @@ local function searchForPlayer()
   if currentPlayer and currentMagnitude < fovRadius then
     return currentPlayer, currentIsVisible
   end
-  return false
+  return nil
 end
 
 local work = false
@@ -440,11 +529,12 @@ local rs2 = game:GetService('RunService').RenderStepped:Connect(getPcalledFuncti
 end))
 
 local _ScreenGUI = Instance.new 'ScreenGui'
+_ScreenGUI.Name = rng(0, 100000000)
 _ScreenGUI.Parent = gethui and gethui() or game:GetService 'CoreGui'
 _ScreenGUI.IgnoreGuiInset = true
 
 task.spawn(function()
-  while task.wait(10) and _ScreenGUI do
+  while task.wait(10) do
     for _, o in pairs(hls) do
       o:Destroy()
     end
@@ -511,7 +601,7 @@ end)
 -- tl2.Parent = _ScreenGUI
 -- tl2.TextSize = 18
 local tl2 = Drawing.new 'Text'
-tl2.Text = math.random(0, 100) > 50 and 'aim.astolfo.gay' or 'aim.femboy.cafe'
+tl2.Text = rng(0, 100) > 50 and 'aim.astolfo.gay' or 'aim.femboy.cafe'
 tl2.Size = 24
 pcall(function()
   tl2.Centered = true
@@ -620,7 +710,10 @@ local connectionList = {}
 local destroyed = false
 local disconnectAimbot
 local redoConnections
-local function SetAimbotState(state, setIsTeamed)
+---Sets Aimbot State & Connects shit
+---@param state boolean
+---@param setIsTeamed boolean
+local SetAimbotState = function(state, setIsTeamed)
   if typeof(state) == 'nil' then
     state = not isEnabled
   end
@@ -637,7 +730,7 @@ local function SetAimbotState(state, setIsTeamed)
   local updateDelta = 0
   local id = ''
   for _ = 0, 1000, 1 do
-    id = id .. tostring(math.random(0, 10000000) + math.random(0, 10000000))
+    id = id .. tostring(math.floor(rng(0, 10000000) + rng(0, 10000000)))
   end
   local func = function(delta)
     local ugs = UserSettings():GetService 'UserGameSettings'
@@ -1001,6 +1094,15 @@ local API = setmetatable({
     if k == 'finaldiv' then
       return finalDiv
     end
+    if k == 'usefindhumanoids' then
+      return useHumanoids
+    end
+    if k == 'usehumanoidsshoulddetectplayersviafindplrs' then
+      return useHumanoidsShouldDetectPlayersViaFindPlrs
+    end
+    if k == 'deathcheck' then
+      return deadCheck
+    end
     if k == 'internals' then
       local defaultFuncs = {
         ['findPlrs'] = findPlrs,
@@ -1009,6 +1111,8 @@ local API = setmetatable({
         ['teamCheck'] = teamCheck,
         ['searchForPlayer'] = searchForPlayer,
         ['finalHook'] = finalHook,
+        ['findHumanoids'] = findHumanoids,
+        ['isAliveCheck'] = isAliveCheck,
       }
       return setmetatable({}, {
         __newindex = function(t, k, v)
@@ -1034,6 +1138,14 @@ local API = setmetatable({
           end
           if k == 'finalHook' then
             finalHook = v
+            return
+          end
+          if k == 'findHumanoids' then
+            findHumanoids = v
+            return
+          end
+          if k == 'isAliveCheck' then
+            isAliveCheck = v
             return
           end
           error(
@@ -1069,6 +1181,12 @@ local API = setmetatable({
           end
           if k == 'finalHook' then
             return finalHook
+          end
+          if k == 'findHumanoids' then
+            return findHumanoids
+          end
+          if k == 'isAliveCheck' then
+            return isAliveCheck
           end
         end,
         __tostring = function()
@@ -1147,6 +1265,10 @@ local API = setmetatable({
     end
     if k == 'onlytriggerbotwhilermb' then
       onlyTriggerBotWhileRMB = not not v
+      return
+    end
+    if k == 'deathcheck' then
+      deadCheck = typeof(v) == 'nil' and true or not not v
       return
     end
     if k == 'triggerbotminimumrmbtime' then
@@ -1291,6 +1413,14 @@ local API = setmetatable({
     if k == '__minsmoothing' then
       num(false)
       minSmoothing = v
+      return
+    end
+    if k == 'usefindhumanoids' then
+      useHumanoids = not not v
+      return
+    end
+    if k == 'usehumanoidsshoulddetectplayersviafindplrs' then
+      useHumanoidsShouldDetectPlayersViaFindPlrs = not not v
       return
     end
     if k == 'version' then

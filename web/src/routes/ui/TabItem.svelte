@@ -6,6 +6,7 @@
   export let tab: AvailableTab;
   export let vcenter = false;
   export let hcenter = false;
+  export let noSpacer = false;
   $: flex = vcenter || hcenter;
 </script>
 
@@ -20,7 +21,9 @@
       <slot />
     </div>
   </div>
-  <Nl />
+  {#if !noSpacer}
+    <Nl />
+  {/if}
 {/if}
 
 <style lang="scss">
