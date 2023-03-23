@@ -22,6 +22,7 @@ local uis = game:GetService 'UserInputService'
 local ws = game:GetService 'Workspace'
 local tms = game:GetService 'Teams'
 local aimInstance = 'Head'
+local moveMouse = mousemoverel
 local mouse = lp:GetMouse()
 
 if not Drawing then
@@ -707,7 +708,7 @@ local function SetAimbotState(state, setIsTeamed)
                 return rt
               end
               -- print(fx, rX, pfs, progress, '=>', smoothing, '+', minSmoothing)
-              mousemoverel(handleMinMax(fx) / finalDiv, handleMinMax(fy) / finalDiv)
+              moveMouse(handleMinMax(fx) / finalDiv, handleMinMax(fy) / finalDiv)
               -- local newTPos = ws.CurrentCamera:WorldToViewportPoint(aimPos)
               -- local newMX = mouse.X
               -- local newMY = mouse.Y
