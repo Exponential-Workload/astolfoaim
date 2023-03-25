@@ -32,21 +32,6 @@ jobs:
         with:
           name: script-build
           path: pages/_pages
-      - name: Upload API
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: api
-          path: pages/_pages/api.lua
-      - name: Upload Web UI
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: web-ui
-          path: pages/_pages/web-ui.lua
-      - name: Upload Loader
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: commit-loader
-          path: pages/_pages/commit/index.html
       - name: Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
