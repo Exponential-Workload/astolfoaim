@@ -1,0 +1,55 @@
+name: Build & Deploy Lua
+
+# on:
+#   pull_request:
+#     types: [opened, reopened, review_requested, closed]
+#   workflow_dispatch:
+on: [pull_request, push]
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Upload Script Source
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: source
+          path: script
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2.2.4
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
+      - name: Build Pages
+        run: |
+          cd pages
+          chmod +x ./_build.sh
+          ./_build.sh
+      - name: Upload Script Build
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: script-build
+          path: pages/_pages
+      - name: Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./pages/_pages
+          destination: ./_site
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: jekyll-build
+          path: pages/_pages

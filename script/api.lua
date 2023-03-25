@@ -42,7 +42,7 @@ end
 
 ---------------------------------------
 -- BUILD | DO NOT CHANGE
-local build = 'RELEASE/0.6.1'
+local build = 'DEV'
 ---------------------------------------
 -- settings:
 local fovRadius = 180
