@@ -141,7 +141,11 @@
     | 'triggerbotminimumrmbtime'
     | 'deathcheck'
     | 'useHumanoidsShouldDetectPlayersViaFindPlrs'
-    | 'humanoidsearch';
+    | 'humanoidsearch'
+    | 'espColour'
+    | 'espTransparency'
+    | 'espOutlineTransparency'
+    | 'espOutlineColour';
   let currentTab: AvailableTab = 'General';
   let hasLoadedTab = false;
   onMount(() => {
@@ -192,6 +196,13 @@
     useHumanoidsShouldDetectPlayersViaFindPlrs: (value: boolean) =>
       `api.useHumanoidsShouldDetectPlayersViaFindPlrs=${value};`,
     humanoidsearch: (value: boolean) => `api.usefindhumanoids=${value};`,
+    espColour: (value: Record<'r' | 'g' | 'b', number>) =>
+      `api.espColour=Color3.fromRGB(${value.r},${value.g},${value.b});`,
+    espTransparency: (value: number) => `api.espTransparency=${value};`,
+    espOutlineTransparency: (value: number) =>
+      `api.espOutlineTransparency=${value};`,
+    espOutlineColour: (value: Record<'r' | 'g' | 'b', number>) =>
+      `api.espOutlineColour=Color3.fromRGB(${value.r},${value.g},${value.b});`,
   };
   const addProfile = async (name?: string | null | void) => {
     name =
@@ -290,6 +301,18 @@ ${script}`
       deathcheck: true,
       humanoidsearch: false,
       useHumanoidsShouldDetectPlayersViaFindPlrs: false,
+      espColour: {
+        r: 255,
+        g: 20,
+        b: 40,
+      },
+      espTransparency: 0.5,
+      espOutlineColour: {
+        r: 255,
+        g: 255,
+        b: 255,
+      },
+      espOutlineTransparency: 0,
       ...profile,
     };
     const searchResult = baseTargetItems.find(
@@ -601,11 +624,54 @@ ${script}`
                 Highlight ESP&nbsp;
                 <span style="opacity:0.5">- Not OBS-Proof</span>
               </Checkbox>
-              <Checkbox bind:checked={profile.legithlesp} on:changed={changed}
-                >Legit ESP</Checkbox
-              >
-              {#if typeof localStorage !== 'undefined' && localStorage.getItem('showdotesp') === 'true'}
-                <h4 style="margin: 0 0;">Deprecated: DotESP</h4>
+              <Checkbox bind:checked={profile.legithlesp} on:changed={changed}>
+                Legit ESP
+              </Checkbox>
+            </TabItem>
+            <TabItem {currentTab} tab="ESP">
+              <label style="margin: 0 0;" for="preview">ESP Colour</label>
+              <div
+                style="width: calc(100% - 8px); height: 32px; background:rgba({profile
+                  .espColour.r},{profile.espColour.g},{profile.espColour.b},{1 -
+                  profile.espTransparency});border-radius: 8px;margin: 0 4px;margin-top:4px;border: 2px solid rgba({profile
+                  .espOutlineColour.r},{profile.espOutlineColour.g},{profile
+                  .espOutlineColour.b},{1 - profile.espOutlineTransparency})"
+                id="preview"
+              />
+              <Nl />
+              <UiSlider
+                name="ESP Red"
+                min={0}
+                max={255}
+                on:changed={changed}
+                bind:value={profile.espColour.r}
+              />
+              <UiSlider
+                name="ESP Green"
+                min={0}
+                max={255}
+                on:changed={changed}
+                bind:value={profile.espColour.g}
+              />
+              <UiSlider
+                name="ESP Blue"
+                min={0}
+                max={255}
+                on:changed={changed}
+                bind:value={profile.espColour.b}
+              />
+              <UiSlider
+                name="ESP Transparency"
+                min={0}
+                max={1}
+                step={0.01}
+                on:changed={changed}
+                bind:value={profile.espTransparency}
+              />
+            </TabItem>
+            {#if typeof localStorage !== 'undefined' && localStorage.getItem('showdotesp') === 'true'}
+              <TabItem {currentTab} tab="ESP" vcenter hcenter>
+                <label for="_" style="margin: 0 0;">Deprecated: DotESP</label>
                 <Checkbox bind:checked={profile.esp} on:changed={changed}>
                   Dot ESP&nbsp;
                   <span style="opacity:0.5">- OBS-Proof - LAG</span>
@@ -613,8 +679,8 @@ ${script}`
                 <Checkbox bind:checked={profile.legitesp} on:changed={changed}
                   >Legit ESP</Checkbox
                 >
-              {/if}
-            </TabItem>
+              </TabItem>
+            {/if}
             <TabItem {currentTab} tab="Trigger Bot" hcenter vcenter>
               <Checkbox bind:checked={profile.triggerbot} on:changed={changed}>
                 Trigger Bot

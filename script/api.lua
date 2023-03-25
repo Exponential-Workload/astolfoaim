@@ -89,6 +89,11 @@ local recursionCount = getgenv().__astolfoaim_zero_precision_recursion_count or 
 local maximumPixelsPerSecond = 10000
 local maximumPixelsPerFrame = 1000
 
+local hlespColour = Color3.new(1, 0, 0)
+local hlespOutlineColour = Color3.new(1, 1, 1)
+local hlespTransparency = 0.5
+local hlespOutlineTransparency = 0
+
 local onlyTriggerBotWhileRMB = true
 local minimumRMBHoldTime = 1 / 4
 
@@ -188,6 +193,10 @@ local findHumanoids = (function()
     --for _,e in pairs(gD) do if o:FindFirstChildOfClass('Humanoid') then table.insert(h,o,e) end end
     local theZaza = {}
     for _, o in pairs(h) do
+      local debugName
+      pcall(function()
+        debugName = o:GetDebugId() .. '/' .. o.Name
+      end)
       local t = npcTeam
       local gpfcR = gPFC(pS, o)
       local shouldAdd = true
@@ -199,7 +208,10 @@ local findHumanoids = (function()
         end
       end
       if shouldAdd then
-        table.insert(theZaza, { ['Character'] = o, ['Team'] = t, ['Name'] = gpfcR and o.Name or o:GetFullName() })
+        table.insert(
+          theZaza,
+          { ['Character'] = o, ['Team'] = t, ['Name'] = gpfcR and (debugName or o.Name) or o:GetFullName() }
+        )
       end
     end
     if useHumanoidsShouldDetectPlayersViaFindPlrs then
@@ -416,6 +428,10 @@ local searchForPlayer = function()
           else
             hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
           end
+          hl.FillColor = hlespColour
+          hl.FillTransparency = hlespTransparency
+          hl.OutlineColor = hlespOutlineColour
+          hl.OutlineTransparency = hlespOutlineTransparency
           hls[plr.Name] = hl
         end
         if highlightesp then
@@ -1203,6 +1219,9 @@ local API = setmetatable({
   end,
   __newindex = function(t, k, v)
     k = string.lower(k)
+    if string.find(k, 'espcolor') then
+      k = string.gsub(k, 'color', 'colour')
+    end
     local num = function(nilAllowed)
       if typeof(v) ~= 'number' then
         if typeof(v) == 'nil' and nilAllowed then
@@ -1283,16 +1302,66 @@ local API = setmetatable({
       local diff = legitHLESP ~= not not v
       legitHLESP = not not v
       if diff then
-        for _, hlobjs in pairs(hls) do
-          for _, hl in pairs(hlobjs) do
-            if hl then
-              if legitHLESP then
-                hl.DepthMode = Enum.HighlightDepthMode.Occluded
-              else
-                hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-              end
+        for _, hl in pairs(hls) do
+          if hl then
+            if legitHLESP then
+              hl.DepthMode = Enum.HighlightDepthMode.Occluded
+            else
+              hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
             end
           end
+        end
+      end
+      return
+    end
+    if k == 'espcolour' then
+      if typeof(v) ~= 'Color3' then
+        error 'Must pass Color3 to espcolour!'
+      end
+      hlespColour = v
+      for _, _hl in pairs(hls) do
+        --- @type Highlight
+        local hl = _hl
+        if hl then
+          hl.FillColor = v
+        end
+      end
+      return
+    end
+    if k == 'esptransparency' then
+      num(true)
+      hlespTransparency = typeof(v) == 'nil' and 0.5 or v
+      for _, _hl in pairs(hls) do
+        --- @type Highlight
+        local hl = _hl
+        if hl then
+          hl.FillTransparency = hlespTransparency
+        end
+      end
+      return
+    end
+    if k == 'espoutlinecolour' then
+      if typeof(v) ~= 'Color3' then
+        error 'Must pass Color3 to espoutlinecolour!'
+      end
+      hlespOutlineColour = v
+      for _, _hl in pairs(hls) do
+        --- @type Highlight
+        local hl = _hl
+        if hl then
+          hl.OutlineColor = v
+        end
+      end
+      return
+    end
+    if k == 'espoutlinetransparency' then
+      num(true)
+      hlespOutlineTransparency = typeof(v) == 'nil' and 0 or v
+      for _, _hl in pairs(hls) do
+        --- @type Highlight
+        local hl = _hl
+        if hl then
+          hl.OutlineTransparency = hlespOutlineColour
         end
       end
       return
