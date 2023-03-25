@@ -10,7 +10,9 @@
   "author": "Exponential-Workload",
   "license": "AGPL-3.0-OR-LATER",
   "devDependencies": {
+    "@types/fs-extra": "^11.0.1",
     "@types/node": "^18.15.3",
+    "fs-extra": "^11.1.1",
     "luamin": "^1.0.4",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.2"

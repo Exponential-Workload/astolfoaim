@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 const luamin = require('luamin')
 const f = (...p: string[]) => path.resolve(__dirname, ...p)
@@ -36,3 +36,7 @@ fs.readdirSync(f('..', 'script')).forEach(v => fs.writeFileSync(f('_pages', v), 
 
 ${luamin.minify(a.replace('\'DEV\'', `'${versionStr}'`))}` : (a: string) => a)(fs.readFileSync(f('..', 'script', v), 'utf-8'))))
 fs.readdirSync(f('base')).forEach(v => fs.copyFileSync(f('base', v), f('_pages', v)))
+fs.ensureFileSync(f('_pages', 'commit', 'index.html'))
+fs.writeFileSync(f('_pages', 'commit', 'index.html'), fs.readFileSync(f('_pages', 'index.html'), 'utf-8').replace('--[[CI_STR]]', `local AstolfoAimCommit=${longCommit};`))
+fs.ensureFileSync(f('_pages', 'branch', 'index.html'))
+fs.writeFileSync(f('_pages', 'branch', 'index.html'), fs.readFileSync(f('_pages', 'index.html'), 'utf-8').replace('--[[CI_STR]]', `local AstolfoAimBranch=${branch};`))
