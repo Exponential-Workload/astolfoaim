@@ -40,12 +40,12 @@ jobs:
       - name: Upload Web UI
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: api
+          name: web-ui
           path: pages/_pages/web-ui.lua
       - name: Upload Loader
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: api
+          name: commit-loader
           path: pages/_pages/commit/index.html
       - name: Jekyll
         uses: actions/jekyll-build-pages@v1
