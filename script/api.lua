@@ -817,7 +817,7 @@ local SetAimbotState = function(state, setIsTeamed)
                 return rt
               end
               -- print(fx, rX, pfs, progress, '=>', smoothing, '+', minSmoothing)
-              moveMouse(handleMinMax(fx) / finalDiv, handleMinMax(fy) / finalDiv)
+              moveMouse(clamp(handleMinMax(fx), -rX, rX) / finalDiv, clamp(handleMinMax(fy), -rY, rY) / finalDiv)
               -- local newTPos = ws.CurrentCamera:WorldToViewportPoint(aimPos)
               -- local newMX = mouse.X
               -- local newMY = mouse.Y
