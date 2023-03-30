@@ -21,11 +21,62 @@ local rng = getgenv()._random_number_generator
     game:HttpGetAsync 'https://gist.githubusercontent.com/Exponential-Workload/593d4b56701133bc827902fe6fdf16a2/raw/random.lua'
   )()
 
-local plrs = game:GetService 'Players'
+---------------------------------------
+local game = game
+local GetService = game.GetService
+local plrs = GetService(game, 'Players')
 local lp = plrs.LocalPlayer
-local uis = game:GetService 'UserInputService'
-local ws = game:GetService 'Workspace'
-local tms = game:GetService 'Teams'
+local uis = GetService(game, 'UserInputService')
+local ws = GetService(game, 'Workspace')
+local tms = GetService(game, 'Teams')
+
+local mathmin, mathmax, mathabs, mathhuge, mathfloor = math.min, math.max, math.abs, math.huge, math.floor
+local _clamp = math.clamp or function(num, min, max)
+  return mathmax(mathmin(num, min), max)
+end
+local clamp = function(num, min, max)
+  if min > max then
+    local x = min
+    min = max
+    max = x
+  end
+  return _clamp(num, min, max)
+end
+---------------------------------------
+local NewVector2, NewColor3, getPlayers, newInstance, TablePush, UpperString, sleep, TableRemove, tonumber, tostring, pairs, spawnTask, CFrame_lookAt, unpack, HSVColor3, NewUDim2, LowerString, GsubString, FindString, FormatString =
+  Vector2.new,
+  Color3.new,
+  plrs.GetPlayers,
+  Instance.new,
+  table.insert,
+  string.upper,
+  task.wait,
+  table.remove,
+  tonumber,
+  tostring,
+  pairs,
+  task.spawn,
+  CFrame.lookAt,
+  unpack or table.unpack,
+  Color3.fromHSV,
+  UDim2.new,
+  string.lower,
+  string.gsub,
+  string.find,
+  string.format
+---------------------------------------
+local npcTeam = newInstance 'Team'
+local GetPlayerFromCharacter = plrs.GetPlayerFromCharacter
+local FindFirstChild = plrs.FindFirstChild
+local FindFirstChildOfClass = plrs.FindFirstChildOfClass
+local WaitForChild = plrs.WaitForChild
+local GetDebugId = plrs.GetDebugId
+local GetFullName = plrs.GetFullName
+local GetChildren = plrs.GetChildren
+local GetDescendants = plrs.GetDescendants
+local IsDescendantOf = plrs.IsDescendantOf
+local DestroyInstance = npcTeam.Destroy
+---------------------------------------
 local aimInstance = 'Head'
 ---Moves the mouse by x,y pixels
 ---@param x number
@@ -89,8 +140,8 @@ local recursionCount = getgenv().__astolfoaim_zero_precision_recursion_count or 
 local maximumPixelsPerSecond = 10000
 local maximumPixelsPerFrame = 1000
 
-local hlespColour = Color3.new(1, 0, 0)
-local hlespOutlineColour = Color3.new(1, 1, 1)
+local hlespColour = NewColor3(1, 0, 0)
+local hlespOutlineColour = NewColor3(1, 1, 1)
 local hlespTransparency = 0.5
 local hlespOutlineTransparency = 0
 
@@ -113,7 +164,7 @@ local getPcalledFunction = getgenv().__use_pcall
     and function(func, ...)
       local args = { ... }
       return function(...)
-        return doPcall(func, table.unpack(args), ...)
+        return doPcall(func, unpack(args), ...)
       end
     end
   or function(v)
@@ -136,26 +187,13 @@ if debug then
   _, execver = (identifyexecutor or function() end)()
 end
 ---------------------------------------
-local mathmin, mathmax, mathabs, mathhuge, mathfloor = math.min, math.max, math.abs, math.huge, math.floor
-local _clamp = math.clamp or function(num, min, max)
-  return mathmax(mathmin(num, min), max)
-end
-local clamp = function(num, min, max)
-  if min > max then
-    local x = min
-    min = max
-    max = x
-  end
-  return _clamp(num, min, max)
-end
----------------------------------------
 local isPf = false
 local minSmoothing = 0
 ---Checks if the character is alive
 ---@param char Model
 ---@return boolean
 local isAliveCheck = function(char)
-  local h = char:FindFirstChildOfClass 'Humanoid'
+  local h = FindFirstChildOfClass(char, 'Humanoid')
   if h then
     return h.Health > 0
   else
@@ -165,7 +203,7 @@ end
 ---Returns a list of Players or {Character=Instance,Team=Team,Name=String} Objects
 ---@return Player[]
 local findPlrs = function()
-  return plrs:GetPlayers()
+  return getPlayers(plrs)
 end
 ---Finds the Character from the Player
 ---@return Model
@@ -189,29 +227,24 @@ local mapAimPart = function(aimpart)
 end
 ---Returns a findPlrs-alike list of humanoids. If useHumanoidsShouldDetectPlayersViaFindPlrs is true, it will call findPlrs() for players instead of adding player characters in the same way as NPCs, at the cost of even more performance. This method can be laggy asf.
 local findHumanoids = (function()
-  local npcTeam = Instance.new 'Team'
-  local g = game
-  local ws = g:GetService 'Workspace'
-  local pS = g:GetService 'Players'
-  local gPFC = pS.GetPlayerFromCharacter
   --local o = 1;
   return function()
-    local gD = ws:GetDescendants()
+    local gD = GetDescendants(ws)
     local h = {}
     for _, o in pairs(gD) do
-      if o:FindFirstChildOfClass 'Humanoid' then
-        table.insert(h, o)
+      if FindFirstChildOfClass(o, 'Humanoid') then
+        TablePush(h, o)
       end
     end
-    --for _,e in pairs(gD) do if o:FindFirstChildOfClass('Humanoid') then table.insert(h,o,e) end end
+    --for _,e in pairs(gD) do if o:FindFirstChildOfClass('Humanoid') then tableInsert(h,o,e) end end
     local theZaza = {}
     for _, o in pairs(h) do
       local debugName
       pcall(function()
-        debugName = o:GetDebugId() .. '/' .. o.Name
+        debugName = GetDebugId(o) .. '/' .. o.Name
       end)
       local t = npcTeam
-      local gpfcR = gPFC(pS, o)
+      local gpfcR = GetPlayerFromCharacter(plrs, o)
       local shouldAdd = true
       if gpfcR then
         if useHumanoidsShouldDetectPlayersViaFindPlrs then
@@ -221,15 +254,12 @@ local findHumanoids = (function()
         end
       end
       if shouldAdd then
-        table.insert(
-          theZaza,
-          { ['Character'] = o, ['Team'] = t, ['Name'] = gpfcR and (debugName or o.Name) or o:GetFullName() }
-        )
+        TablePush(theZaza, { ['Character'] = o, ['Team'] = t, ['Name'] = gpfcR and (debugName or o.Name) or GetFullName(o) })
       end
     end
     if useHumanoidsShouldDetectPlayersViaFindPlrs then
       for _, player in pairs(findPlrs()) do
-        table.insert(theZaza, player)
+        TablePush(theZaza, player)
       end
     end
     return theZaza
@@ -239,19 +269,19 @@ end)()
 if tostring(game.PlaceId) == '292439477' or tostring(game.GameId) == '292439477' then
   isPf = true
   local findTeamByName = function(teamName)
-    for _, o in pairs(tms:GetChildren()) do
+    for _, o in pairs(GetChildren(tms)) do
       if tostring(o.TeamColor) == teamName then
         return o
       end
     end
   end
   findPlrs = function()
-    local teams = ws:FindFirstChild('Players'):GetChildren()
+    local teams = FindFirstChild(ws, 'Players'):GetChildren()
     local players = {}
     for _, o in pairs(teams) do
       local team = findTeamByName(o.Name)
-      for _, p in pairs(o:GetChildren()) do
-        table.insert(players, { ['Character'] = p, ['Team'] = team, ['Name'] = p })
+      for _, p in pairs(GetChildren(o)) do
+        TablePush(players, { ['Character'] = p, ['Team'] = team, ['Name'] = p })
       end
     end
     return players
@@ -263,12 +293,12 @@ if tostring(game.PlaceId) == '292439477' or tostring(game.GameId) == '292439477'
 end
 -- Bad Business Patches
 if tostring(game.PlaceId) == '3233893879' then
-  local chars = ws:WaitForChild('Characters', mathhuge)
+  local chars = WaitForChild(ws, 'Characters', mathhuge)
   findPlrs = function()
     local players = {}
-    for _, p in pairs(chars:GetChildren()) do
-      if p:FindFirstChild 'Body' then
-        table.insert(players, { ['Character'] = p.Body, ['Name'] = p })
+    for _, p in pairs(GetChildren(chars)) do
+      if FindFirstChild(p, 'Body') then
+        TablePush(players, { ['Character'] = p.Body, ['Name'] = p })
       end
     end
     return players
@@ -277,8 +307,8 @@ if tostring(game.PlaceId) == '3233893879' then
     return plr
   end
   teamCheck = function(team, plr)
-    for _, o in pairs(lp.PlayerGui:GetChildren()) do
-      if o.Name == 'NameGui' and o.Adornee:IsDescendantOf(plr.Character) then
+    for _, o in pairs(GetChildren(lp.PlayerGui)) do
+      if o.Name == 'NameGui' and IsDescendantOf(o.Adornee, plr.Character) then
         return false
       end
     end
@@ -296,12 +326,12 @@ local determinePFSensitivity = function()
         for _, o in pairs(sts:GetChildren()) do
           if
             o.Name == 'ButtonSettingsSlider'
-            and o:FindFirstChild 'Title'
-            and o.Title:FindFirstChild 'Design'
-            and o.Title:FindFirstChild 'TextFrame'
-            and string.upper(o.Title.TextFrame.Text or '') == 'MOUSE SENSITIVITY'
-            and o:FindFirstChild 'DisplaySlider'
-            and o.DisplaySlider:FindFirstChild 'TextBox'
+            and FindFirstChild(o, 'Title')
+            and FindFirstChild(o.Title, 'Design')
+            and FindFirstChild(o.Title, 'TextFrame')
+            and UpperString(o.Title.TextFrame.Text or '') == 'MOUSE SENSITIVITY'
+            and FindFirstChild(o, 'DisplaySlider')
+            and FindFirstChild(o.DisplaySlider, 'TextBox')
             and tonumber(o.DisplaySlider.TextBox.Text)
           then
             pfsens = tonumber(o.DisplaySlider.TextBox.Text)
@@ -337,7 +367,7 @@ uis.InputBegan:Connect(function(input)
   if input.UserInputType == Enum.UserInputType.MouseButton2 then
     local id = _isMousePressedID + 1
     _isMousePressedID = id
-    task.wait(minimumRMBHoldTime)
+    sleep(minimumRMBHoldTime)
     if _isMousePressedID == id then
       isMousePressed = true
     end
@@ -363,7 +393,7 @@ local getDrawingObject = function(type)
   cachedDrawingObjectCount[type] = count -- faster than length operator: tracking our own lengths
   if count > 0 then
     local object = objects[1]
-    table.remove(objects, 1)
+    TableRemove(objects, 1)
     cachedDrawingObjectCount[type] = count - 1
     return object
   else
@@ -374,7 +404,7 @@ local collectDrawingObject = function(item, type)
   pcall(function()
     if item and item.Visible then
       cachedDrawingObjects[type] = cachedDrawingObjects[type] or {}
-      table.insert(cachedDrawingObjects[type], item)
+      TablePush(cachedDrawingObjects[type], item)
       cachedDrawingObjectCount[type] = cachedDrawingObjectCount[type] + 1
       item.Visible = false
     end
@@ -391,7 +421,7 @@ local searchForPlayer = function()
   local camera = ws.CurrentCamera
   local currentPlayer, currentMagnitude, currentIsVisible
   local p = useHumanoids and findHumanoids() or findPlrs()
-  if hackulaSupport and ws:FindFirstChild 'Map' and ws.Map:FindFirstChild 'Hackula' then
+  if hackulaSupport and FindFirstChild(ws, 'Map') and FindFirstChild(ws.Map, 'Hackula') then
     p = { { Character = ws.Map.Hackula } }
   end
   if highlightesp then
@@ -413,7 +443,7 @@ local searchForPlayer = function()
           end
         end
         if not hasPlayer then
-          v:Destroy()
+          DestroyInstance(v)
         end
       end
     end
@@ -431,10 +461,10 @@ local searchForPlayer = function()
     if plr ~= lp and teamCheckResult then
       local char = findChar(plr)
       local isAlive = not deadCheck or isAliveCheck(char)
-      if char and char:FindFirstChild(targetAimPart, true) and isAlive then
+      if char and FindFirstChild(char, targetAimPart, true) and isAlive then
         -- ESP
         if highlightesp and not hls[plr.Name] then
-          local hl = Instance.new 'Highlight'
+          local hl = newInstance 'Highlight'
           hl.Parent = gethui and gethui() or game:GetService 'CoreGui'
           if legitHLESP then
             hl.DepthMode = Enum.HighlightDepthMode.Occluded
@@ -450,18 +480,19 @@ local searchForPlayer = function()
         if highlightesp then
           hls[plr.Name].Adornee = char
         end
-        local charPos = (
-          char:FindFirstChild(targetAimPart, true):IsA 'BasePart' and char:FindFirstChild(targetAimPart, true)
-          or char:FindFirstChildOfClass 'BasePart'
-        ).Position
+        local charPos = (FindFirstChild(char, targetAimPart, true):IsA 'BasePart' and FindFirstChild(
+          char,
+          targetAimPart,
+          true
+        ) or FindFirstChildOfClass(char, 'BasePart')).Position
         if (charPos - camera.CFrame.Position).Magnitude < maxDistance then
           local screenData, isOnScreen = camera:WorldToViewportPoint(charPos)
-          local screenPoistion = Vector2.new(screenData.X, screenData.Y)
+          local screenPoistion = NewVector2(screenData.X, screenData.Y)
           local cached = nil
           local isCachedResult = false
           if limitRaycastToCircle and (not mouseX or not mouseY) then
             mouseX, mouseY = mousePosition.X or mouse.X, mousePosition.Y or mouse.Y
-            mouseV2 = Vector2.new(mouseX, mouseY)
+            mouseV2 = NewVector2(mouseX, mouseY)
           end
           local checkVisibility = function()
             if isCachedResult then
@@ -472,7 +503,7 @@ local searchForPlayer = function()
               cached = false
               return cached
             end
-            local t = char:FindFirstChild(targetAimPart, true)
+            local t = FindFirstChild(char, targetAimPart, true)
             local targets = { charPos, t and t.Position }
             local parts = camera:GetPartsObscuringTarget(targets, { lpchr })
             local actualBlockages = {}
@@ -481,7 +512,7 @@ local searchForPlayer = function()
                 not o:IsDescendantOf(char)
                 and (not (isPf or doScopeCheck) or (camera.CFrame.Position - o.Position).Magnitude > 5)
               then
-                table.insert(actualBlockages, o)
+                TablePush(actualBlockages, o)
               end
             end
             isCachedResult = true
@@ -493,10 +524,10 @@ local searchForPlayer = function()
             local sq = getDrawingObject 'Circle'
             sq.Visible = true
             sq.Radius = size
-            sq.Position = screenPoistion - Vector2.new(0, size - 15)
+            sq.Position = screenPoistion - NewVector2(0, size - 15)
             sq.Filled = true
-            sq.Color = checkVisibility() and Color3.new(1, 0.219607, 0.219607) or Color3.new(0.552941, 0, 0)
-            table.insert(espdrawings, sq)
+            sq.Color = checkVisibility() and NewColor3(1, 0.219607, 0.219607) or NewColor3(0.552941, 0, 0)
+            TablePush(espdrawings, sq)
           end
           if not wallCheck or checkVisibility() then
             local mag = (screenPoistion - mousePosition).Magnitude
@@ -521,7 +552,9 @@ end
 local work = false
 local isEnabled = false
 local stepDelta = 0
-local rs2 = game:GetService('RunService').RenderStepped:Connect(getPcalledFunction(function(delta)
+local RunService = GetService(game, 'RunService')
+local RenderStepped = RunService.RenderStepped
+local rs2 = RenderStepped:Connect(getPcalledFunction(function(delta)
   stepDelta = stepDelta + delta
   if stepDelta > refreshRate then
     stepDelta = 0
@@ -537,7 +570,7 @@ local rs2 = game:GetService('RunService').RenderStepped:Connect(getPcalledFuncti
       for _, o in pairs(espdrawings) do
         pcall(function()
           collectDrawingObject(o, 'Circle')
-          game:GetService('RunService').RenderStepped:Wait()
+          RenderStepped:Wait()
         end)
       end
       work = false
@@ -548,13 +581,13 @@ local rs2 = game:GetService('RunService').RenderStepped:Connect(getPcalledFuncti
   end
 end))
 
-local _ScreenGUI = Instance.new 'ScreenGui'
+local _ScreenGUI = newInstance 'ScreenGui'
 _ScreenGUI.Name = rng(0, 100000000)
 _ScreenGUI.Parent = gethui and gethui() or game:GetService 'CoreGui'
 _ScreenGUI.IgnoreGuiInset = true
 
-task.spawn(function()
-  while task.wait(1) do
+spawnTask(function()
+  while sleep(1) do
     for _, o in pairs(hls) do
       o:Destroy()
     end
@@ -567,17 +600,17 @@ end)
 
 local circle
 
-local tl = Instance.new 'TextLabel'
+local tl = newInstance 'TextLabel'
 tl.BackgroundTransparency = 1
-tl.Position = UDim2.new(0.5, 0, 0.95, -8)
-tl.AnchorPoint = Vector2.new(0.5, 1)
-tl.Text = '' -- "Yielding#3961"
+tl.Position = NewUDim2(0.5, 0, 0.95, -8)
+tl.AnchorPoint = NewVector2(0.5, 1)
+tl.Text = '' -- "Expo#3961"
 tl.TextTransparency = 1
-tl.TextColor3 = Color3.new(1, 1, 1)
+tl.TextColor3 = NewColor3(1, 1, 1)
 tl.Parent = _ScreenGUI
 tl.TextSize = 16
 local tlc = Drawing.new 'Text'
-tlc.Text = 'aim.astolfo.gay BETA | Quality Universal Aimbot'
+tlc.Text = 'aim.femboy.cafe BETA | Quality Universal Aimbot'
 tlc.Size = 24
 tlc.Position = tl.AbsolutePosition
 pcall(function()
@@ -586,11 +619,11 @@ end)
 pcall(function()
   tlc.Center = true
 end)
-tlc.Color = Color3.fromHSV(0, 1, 1)
+tlc.Color = HSVColor3(0, 1, 1)
 tlc.Visible = true
 local conn
-task.spawn(function()
-  task.wait(10)
+spawnTask(function()
+  sleep(10)
   tlc.Visible = false
   conn:Disconnect()
 end)
@@ -605,7 +638,7 @@ conn = game:GetService('RunService').RenderStepped:Connect(function(delta)
   if tlc and tlc.Visible then
     pcall(function()
       tlc.Position = tl.AbsolutePosition
-      tlc.Color = Color3.fromHSV(hue, 1, 1)
+      tlc.Color = HSVColor3(hue, 1, 1)
     end)
   end
 end)
@@ -621,18 +654,18 @@ end)
 pcall(function()
   tl2.Center = true
 end)
-tl2.Color = Color3.new(1, 1, 1)
+tl2.Color = NewColor3(1, 1, 1)
 local drawingObjects = { tl2, tlc }
 local updatedebug = function() end
 if debug then
   local debugtxt = Drawing.new 'Text'
-  debugtxt.Position = Vector2.new(10, 180)
+  debugtxt.Position = NewVector2(10, 180)
   debugtxt.Size = 20
   -- debugtxt.Text = 'hehe'
-  debugtxt.Color = Color3.new(1, 1, 1)
+  debugtxt.Color = NewColor3(1, 1, 1)
   debugtxt.Visible = true
   updatedebug = function()
-    debugtxt.Text = string.format(
+    debugtxt.Text = FormatString(
       [[AstolfoAim Build %s
   cfg.state(ti=%s, isT=%s, sm=%s)
   exec(%s, %s)]],
@@ -649,14 +682,14 @@ if debug then
     debugtxt.Font = Drawing.Fonts.Plex
   end)
   debugtxt.Outline = true
-  table.insert(drawingObjects, debugtxt)
+  TablePush(drawingObjects, debugtxt)
 end
 local moveCircle = function() end
 local isJob
 local remakeCircle = function()
   -- get center of screen
-  local _Frame = Instance.new 'Frame'
-  _Frame.Size = UDim2.new(1, 0, 1, 0)
+  local _Frame = newInstance 'Frame'
+  _Frame.Size = NewUDim2(1, 0, 1, 0)
   _Frame.BorderSizePixel = 0
   _Frame.BackgroundTransparency = 1
   _Frame.Parent = _ScreenGUI
@@ -664,7 +697,7 @@ local remakeCircle = function()
   -- create aim url
   local movetl2 = function()
     tl2.Position = (getgenv().__astolfoaim_always_center_circle and _Frame.AbsoluteSize / 2 or uis:GetMouseLocation())
-      + ((not getgenv().__astolfoaim_put_at_fixed_height) and Vector2.new(0, mathmin(128, fovRadius)) or Vector2.new(0, 32))
+      + ((not getgenv().__astolfoaim_put_at_fixed_height) and NewVector2(0, mathmin(128, fovRadius)) or NewVector2(0, 32))
   end
   movetl2()
   moveCircle = function()
@@ -682,8 +715,8 @@ local remakeCircle = function()
   end
   if not isJob then
     isJob = true
-    task.spawn(function()
-      while _Frame and task.wait(2) do
+    spawnTask(function()
+      while _Frame and sleep(2) do
         pcall(moveCircle)
       end
       isJob = false
@@ -693,12 +726,12 @@ local remakeCircle = function()
   circle.NumSides = circleSides
   circle.Radius = fovRadius
   circle.Visible = isEnabled
-  circle.Color = Color3.new(255, 255, 255)
+  circle.Color = NewColor3(1, 1, 1)
   pcall(moveCircle)
   pcall(function()
     circle.Thickness = 1
   end)
-  table.insert(drawingObjects, circle)
+  TablePush(drawingObjects, circle)
 
   _Frame.Visible = false
 end
@@ -750,7 +783,7 @@ local SetAimbotState = function(state, setIsTeamed)
         end
         smoothLerp = mathmin(smoothLerp, 1)
       end
-      task.spawn(function()
+      spawnTask(function()
         pcall(moveCircle)
       end)
       local updDelta = updateDelta
@@ -763,7 +796,7 @@ local SetAimbotState = function(state, setIsTeamed)
         if useMouseMove and mousemoverel and useDesynchronizedThreads then
           task.desynchronize()
         end
-        local Aim = targetPlayer:FindFirstChild(mapAimPart(aimInstance), true)
+        local Aim = FindFirstChild(targetPlayer, mapAimPart(aimInstance), true)
         if Aim ~= nil then
           local aimPos = Aim.CFrame.Position
           if yfix and ws.CurrentCamera.CFrame.Position.Y - aimPos.Y > 200 then
@@ -810,7 +843,7 @@ local SetAimbotState = function(state, setIsTeamed)
             end
             movement(0)
           else
-            local target = CFrame.lookAt(ws.CurrentCamera.CFrame.Position, aimPos)
+            local target = CFrame_lookAt(ws.CurrentCamera.CFrame.Position, aimPos)
             if smoothLerp == 1 then
               ws.CurrentCamera.CFrame = target
             else
@@ -825,8 +858,8 @@ local SetAimbotState = function(state, setIsTeamed)
             local wtvp = ws.CurrentCamera:WorldToViewportPoint(aimPos)
             if
               (
-                Vector2.new(wtvp.X, wtvp.Y)
-                - (useDesynchronizedThreads and Vector2.new(mouse.X, mouse.Y) or uis:GetMouseLocation())
+                NewVector2(wtvp.X, wtvp.Y)
+                - (useDesynchronizedThreads and NewVector2(mouse.X, mouse.Y) or uis:GetMouseLocation())
               ).Magnitude < 7
             then
               mouse1press()
@@ -920,8 +953,7 @@ local SetAimbotState = function(state, setIsTeamed)
   end
   getgenv().disconnectAimbot = disconnectAimbot
 end
-
-table.insert(
+TablePush(
   connectionList,
   game:GetService('UserInputService').InputBegan:Connect(function(inp)
     if toggleKeybind then
@@ -932,8 +964,7 @@ table.insert(
     end
   end)
 )
-
-table.insert(
+TablePush(
   connectionList,
   game:GetService('UserInputService').InputEnded:Connect(function(inp)
     if inp.KeyCode == toggleKey then
@@ -981,7 +1012,7 @@ local API = setmetatable({
   end,
 }, {
   __index = function(t, k)
-    k = string.lower(k)
+    k = LowerString(k)
     if k == 'enabled' then
       return isEnabled and isActive
     end
@@ -1183,9 +1214,9 @@ local API = setmetatable({
     error('Unknown or unwritable property: ' .. k)
   end,
   __newindex = function(t, k, v)
-    k = string.lower(k)
-    if string.find(k, 'espcolor') then
-      k = string.gsub(k, 'color', 'colour')
+    k = LowerString(k)
+    if FindString(k, 'espcolor') then
+      k = GsubString(k, 'color', 'colour')
     end
     local num = function(nilAllowed)
       if typeof(v) ~= 'number' then
@@ -1413,7 +1444,7 @@ local API = setmetatable({
     end
     if k == 'pfsens' then
       if typeof(v) == 'string' then
-        if string.lower(v) == 'auto' then
+        if LowerString(v) == 'auto' then
           return determinePFSensitivity()
         else
           return error 'If a string is passed to pfsens, it must be "AUTO".'
