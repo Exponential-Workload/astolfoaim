@@ -32,3 +32,16 @@ local script = game:HttpGetAsync(url)
 local api = loadstring(script,'wui')('web-ui');
 -- interact with api here if you so desire
 ```
+
+## Running off of a specific commit/branch/fork
+```lua
+local globalEnv = getgenv();
+
+-- set any of the below; note commit overwrites branch:
+--> globalEnv.AstolfoAimBranch = 'branch';
+--> globalEnv.AstolfoAimCommit = 'commit';
+--> globalEnv.AstolfoAimUsername = 'github-username';
+
+-- load as normal:
+import(5311); --> sw loader; load using the loadstring on other execs
+```

@@ -11,7 +11,7 @@ const longCommit = fs.existsSync(branchRefFile) ? fs.readFileSync(branchRefFile,
 const shortCommit = longCommit.substring(0, 7)
 const isMaster = (branch === 'main' || branch === 'master')
 const versionStr = `${isMaster ? 'RELEASE' : 'BETA'}/${isMaster ? shortCommit : `${branch}/${longCommit}`}`
-fs.readdirSync(f('..', 'script')).forEach(v => fs.writeFileSync(f('_pages', v), (v.endsWith('.lua') ? (a: string) => `-- AstolfoAim @ ${fs.readFileSync(f('..', '.git', fs.readFileSync(f('..', '.git', 'HEAD'), 'utf-8').replace('ref: ', '').trim()), 'utf-8').trim()}
+fs.readdirSync(f('..', 'script')).forEach(v => fs.writeFileSync(f('_pages', v), (v.endsWith('.lua') ? (a: string) => `-- AstolfoAim @ ${longCommit}
 -- License => AGPLv3
 -- Release => ${versionStr}
 -- Source  => https://github.com/Exponential-Workload/astolfoaim/blob/${longCommit}/script/${v}
