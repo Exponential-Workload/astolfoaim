@@ -102,36 +102,12 @@ if not Drawing then
 end
 
 ---------------------------------------
--- BUILD | DO NOT CHANGE
-local build = 'DEV'
-if build == 'DEV' then
-  local commit = globalEnv.AstolfoAimCommit
-  local branch = globalEnv.AstolfoAimBranch
-  local username = globalEnv.AstolfoAimUsername
-  if commit or branch == 'main' or branch == 'master' then
-    branch = nil
-  end
-  local releaseType = commit and 'COMMIT' or branch and 'BETA' or username and 'FORK' or 'RELEASE'
-  if username then
-    if commit or branch then
-      build = '<' .. username .. '>' .. releaseType .. '/' .. (commit or branch) .. ''
-    else
-      build = '<' .. username .. '>' .. releaseType
-    end
-  elseif commit or branch then
-    build = releaseType .. '/' .. (commit or branch)
-  else
-    build = releaseType
-  end
-end
----------------------------------------
 -- settings:
 local fovRadius = 180
 local maxDistance = 512
 local wallCheck = false
 local triggerBot = true
 local toggleKeybind = true -- Is the keybind toggled? If false, its only active while keybind held
-local targetInfo = false -- Target Info (Drawing Lib) | NONFUNCTIONAL
 local toggleKey = Enum.KeyCode.LeftAlt -- Toggle/Active Keybind
 local useMouseMove = true -- Use mousemoverel if present
 local circleSides = 42 -- Amount of sides the circle should have
@@ -200,6 +176,32 @@ local getPcalledFunction = globalEnv.__use_pcall
   or function(v)
     return v
   end
+---------------------------------------
+-- BUILD | DO NOT CHANGE
+local build = 'DEV'
+if build == 'DEV' then
+  local commit = globalEnv.AstolfoAimCommit
+  local branch = globalEnv.AstolfoAimBranch
+  local username = globalEnv.AstolfoAimUsername
+  if commit or branch == 'main' or branch == 'master' then
+    branch = nil
+  end
+  local releaseType = commit and 'COMMIT' or branch and 'BETA' or username and 'FORK' or 'RELEASE'
+  if username then
+    if commit or branch then
+      build = '<' .. username .. '>' .. releaseType .. '/' .. (commit or branch) .. ''
+    else
+      build = '<' .. username .. '>' .. releaseType
+    end
+  elseif commit or branch then
+    build = releaseType .. '/' .. (commit or branch)
+  else
+    build = releaseType
+  end
+  if build ~= 'RELEASE' then
+    debug = true
+  end
+end
 ---------------------------------------
 -- What to display execs as in debug logs:
 local formatExecs = {
