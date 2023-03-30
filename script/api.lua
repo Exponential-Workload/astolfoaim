@@ -661,7 +661,7 @@ pcall(function()
   tlc.Font = Drawing.Fonts.Plex
 end)
 local tl2 = Drawing.new 'Text'
-tl2.Text = rng(0, 100) > 50 and 'aim.astolfo.gay' or 'aim.femboy.cafe'
+tl2.Text = rng() > 0.5 and 'aim.astolfo.gay' or 'aim.femboy.cafe'
 tl2.Size = 24
 pcall(function()
   tl2.Centered = true
@@ -682,12 +682,8 @@ if debug then
   updatedebug = function()
     debugtxt.Text = FormatString(
       [[AstolfoAim Build %s
-  cfg.state(ti=%s, isT=%s, sm=%s)
-  exec(%s, %s)]],
+  exec(%s) --> %s]],
       build,
-      tostring(targetInfo),
-      tostring(isTeamed),
-      tostring(smoothing),
       exec,
       tostring(execver or 'UNKNOWN')
     )
@@ -1253,7 +1249,6 @@ local API = setmetatable({
       num(true)
       fovRadius = v or 180
       remakeCircle()
-      updatedebug()
       return
     end
     if k == 'maxdistance' then
@@ -1408,7 +1403,6 @@ local API = setmetatable({
     end
     if k == 'teamed' then
       isTeamed = typeof(v) == 'nil' and true or not not v
-      updatedebug()
       return
     end
     if k == 'accountforsensitivity' then
