@@ -82,6 +82,16 @@ if globalEnv.__astolfoaim_rejoin_on_reexec then
 end
 ---------------------------------------
 local npcTeam = newInstance 'Team'
+local GetPlayerFromCharacter = plrs.GetPlayerFromCharacter
+local FindFirstChild = plrs.FindFirstChild
+local FindFirstChildOfClass = plrs.FindFirstChildOfClass
+local WaitForChild = plrs.WaitForChild
+local GetDebugId = plrs.GetDebugId
+local GetFullName = plrs.GetFullName
+local GetChildren = plrs.GetChildren
+local GetDescendants = plrs.GetDescendants
+local IsDescendantOf = plrs.IsDescendantOf
+local DestroyInstance = npcTeam.Destroy
 ---------------------------------------
 local aimInstance = 'Head'
 ---Moves the mouse by x,y pixels
@@ -223,7 +233,7 @@ local minSmoothing = 0
 ---@param char Model
 ---@return boolean
 local isAliveCheck = function(char)
-  local h = char:FindFirstChildOfClass 'Humanoid'
+  local h = FindFirstChildOfClass(char, 'Humanoid')
   if h then
     return h.Health > 0
   else
@@ -259,10 +269,10 @@ end
 local findHumanoids = (function()
   --local o = 1;
   return function()
-    local gD = ws:GetDescendants()
+    local gD = GetDescendants(ws)
     local h = {}
     for _, o in pairs(gD) do
-      if o:FindFirstChildOfClass 'Humanoid' then
+      if FindFirstChildOfClass(o, 'Humanoid') then
         TablePush(h, o)
       end
     end
@@ -271,10 +281,10 @@ local findHumanoids = (function()
     for _, o in pairs(h) do
       local debugName
       pcall(function()
-        debugName = (o:GetDebugId()) .. '/' .. o.Name
+        debugName = GetDebugId(o) .. '/' .. o.Name
       end)
       local t = npcTeam
-      local gpfcR = plrs:GetPlayerFromCharacter(o)
+      local gpfcR = GetPlayerFromCharacter(plrs, o)
       local shouldAdd = true
       if gpfcR then
         if useHumanoidsShouldDetectPlayersViaFindPlrs then
@@ -284,10 +294,7 @@ local findHumanoids = (function()
         end
       end
       if shouldAdd then
-        TablePush(
-          theZaza,
-          { ['Character'] = o, ['Team'] = t, ['Name'] = gpfcR and (debugName or o.Name) or o:GetFullName() }
-        )
+        TablePush(theZaza, { ['Character'] = o, ['Team'] = t, ['Name'] = gpfcR and (debugName or o.Name) or GetFullName(o) })
       end
     end
     if useHumanoidsShouldDetectPlayersViaFindPlrs then
@@ -302,18 +309,18 @@ end)()
 if tostring(game.PlaceId) == '292439477' or tostring(game.GameId) == '292439477' then
   isPf = true
   local findTeamByName = function(teamName)
-    for _, o in pairs(tms:GetChildren()) do
+    for _, o in pairs(GetChildren(tms)) do
       if tostring(o.TeamColor) == teamName then
         return o
       end
     end
   end
   findPlrs = function()
-    local teams = ws:FindFirstChild('Players'):GetChildren()
+    local teams = FindFirstChild(ws, 'Players'):GetChildren()
     local players = {}
     for _, o in pairs(teams) do
       local team = findTeamByName(o.Name)
-      for _, p in pairs(o:GetChildren()) do
+      for _, p in pairs(GetChildren(o)) do
         TablePush(players, { ['Character'] = p, ['Team'] = team, ['Name'] = p })
       end
     end
@@ -326,11 +333,11 @@ if tostring(game.PlaceId) == '292439477' or tostring(game.GameId) == '292439477'
 end
 -- Bad Business Patches
 if tostring(game.PlaceId) == '3233893879' then
-  local chars = ws:WaitForChild('Characters', mathhuge)
+  local chars = WaitForChild(ws, 'Characters', mathhuge)
   findPlrs = function()
     local players = {}
-    for _, p in pairs(chars:GetChildren()) do
-      if p:FindFirstChild 'Body' then
+    for _, p in pairs(GetChildren(chars)) do
+      if FindFirstChild(p, 'Body') then
         TablePush(players, { ['Character'] = p.Body, ['Name'] = p })
       end
     end
@@ -340,8 +347,8 @@ if tostring(game.PlaceId) == '3233893879' then
     return plr
   end
   teamCheck = function(team, plr)
-    for _, o in pairs(lp.PlayerGui:GetChildren()) do
-      if o.Name == 'NameGui' and o.Adornee:IsDescendantOf(plr.Character) then
+    for _, o in pairs(GetChildren(lp.PlayerGui)) do
+      if o.Name == 'NameGui' and IsDescendantOf(o.Adornee, plr.Character) then
         return false
       end
     end
@@ -359,12 +366,12 @@ local determinePFSensitivity = function()
         for _, o in pairs(sts:GetChildren()) do
           if
             o.Name == 'ButtonSettingsSlider'
-            and o:FindFirstChild 'Title'
-            and o.Title:FindFirstChild 'Design'
-            and o.Title:FindFirstChild 'TextFrame'
+            and FindFirstChild(o, 'Title')
+            and FindFirstChild(o.Title, 'Design')
+            and FindFirstChild(o.Title, 'TextFrame')
             and UpperString(o.Title.TextFrame.Text or '') == 'MOUSE SENSITIVITY'
-            and o:FindFirstChild 'DisplaySlider'
-            and o.DisplaySlider:FindFirstChild 'TextBox'
+            and FindFirstChild(o, 'DisplaySlider')
+            and FindFirstChild(o.DisplaySlider, 'TextBox')
             and tonumber(o.DisplaySlider.TextBox.Text)
           then
             pfsens = tonumber(o.DisplaySlider.TextBox.Text)
@@ -454,7 +461,7 @@ local searchForPlayer = function()
   local camera = ws.CurrentCamera
   local currentPlayer, currentMagnitude, currentIsVisible
   local p = useHumanoids and findHumanoids() or findPlrs()
-  if hackulaSupport and ws:FindFirstChild 'Map' and ws.Map:FindFirstChild 'Hackula' then
+  if hackulaSupport and FindFirstChild(ws, 'Map') and FindFirstChild(ws.Map, 'Hackula') then
     p = { { Character = ws.Map.Hackula } }
   end
   if highlightesp then
@@ -476,7 +483,7 @@ local searchForPlayer = function()
           end
         end
         if not hasPlayer then
-          v:Destroy()
+          DestroyInstance(v)
         end
       end
     end
@@ -494,7 +501,7 @@ local searchForPlayer = function()
     if plr ~= lp and teamCheckResult then
       local char = findChar(plr)
       local isAlive = not deadCheck or isAliveCheck(char)
-      if char and char:FindFirstChild(targetAimPart, true) and isAlive then
+      if char and FindFirstChild(char, targetAimPart, true) and isAlive then
         -- ESP
         if highlightesp and not hls[plr.Name] then
           local hl = newInstance 'Highlight'
@@ -513,10 +520,11 @@ local searchForPlayer = function()
         if highlightesp then
           hls[plr.Name].Adornee = char
         end
-        local charPos = (
-          char:FindFirstChild(targetAimPart, true):IsA 'BasePart' and char:FindFirstChild(targetAimPart, true)
-          or char:FindFirstChildOfClass 'BasePart'
-        ).Position
+        local charPos = (FindFirstChild(char, targetAimPart, true):IsA 'BasePart' and FindFirstChild(
+          char,
+          targetAimPart,
+          true
+        ) or FindFirstChildOfClass(char, 'BasePart')).Position
         if (charPos - camera.CFrame.Position).Magnitude < maxDistance then
           local screenData, isOnScreen = camera:WorldToViewportPoint(charPos)
           local screenPoistion = NewVector2(screenData.X, screenData.Y)
@@ -535,7 +543,7 @@ local searchForPlayer = function()
               cached = false
               return cached
             end
-            local t = char:FindFirstChild(targetAimPart, true)
+            local t = FindFirstChild(char, targetAimPart, true)
             local targets = { charPos, t and t.Position }
             local parts = camera:GetPartsObscuringTarget(targets, { lpchr })
             local actualBlockages = {}
@@ -826,7 +834,7 @@ local SetAimbotState = function(state, setIsTeamed)
         if useMouseMove and mousemoverel and useDesynchronizedThreads then
           task.desynchronize()
         end
-        local Aim = targetPlayer:FindFirstChild(mapAimPart(aimInstance), true)
+        local Aim = FindFirstChild(targetPlayer, mapAimPart(aimInstance), true)
         if Aim ~= nil then
           local aimPos = Aim.CFrame.Position
           if yfix and ws.CurrentCamera.CFrame.Position.Y - aimPos.Y > 200 then
