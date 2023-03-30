@@ -43,7 +43,7 @@ local clamp = function(num, min, max)
   return _clamp(num, min, max)
 end
 ---------------------------------------
-local NewVector2, NewColor3, getPlayers, newInstance, TablePush, UpperString, sleep, TableRemove, tonumber, tostring, pairs, spawnTask, CFrame_lookAt, unpack, HSVColor3, NewUDim2, LowerString, GsubString, FindString, FormatString =
+local NewVector2, NewColor3, getPlayers, newInstance, TablePush, UpperString, sleep, TableRemove, tonumber, tostring, pairs, spawnTask, CFrame_lookAt, unpack, HSVColor3, NewUDim2, LowerString, GsubString, FindString, FormatString, error, typeof, getgenv, tostring =
   Vector2.new,
   Color3.new,
   plrs.GetPlayers,
@@ -63,7 +63,12 @@ local NewVector2, NewColor3, getPlayers, newInstance, TablePush, UpperString, sl
   string.lower,
   string.gsub,
   string.find,
-  string.format
+  string.format,
+  error,
+  typeof,
+  getgenv,
+  tostring
+local globalEnv = getgenv()
 ---------------------------------------
 local npcTeam = newInstance 'Team'
 local GetPlayerFromCharacter = plrs.GetPlayerFromCharacter
@@ -124,18 +129,18 @@ local legitESP = false -- Should ESP only show players that are visible?   [[ONL
 local legitHLESP = false -- Should ESP only show players that are visible? [[ONLY AFFETS HLESP!                       ]]
 
 local useHumanoids = false -- use humanoid/npc loader over player loader
-local useHumanoidsShouldDetectPlayersViaFindPlrs = getgenv()._useHumanoidsShouldDetectPlayersViaGetPlrs
+local useHumanoidsShouldDetectPlayersViaFindPlrs = globalEnv._useHumanoidsShouldDetectPlayersViaGetPlrs
 local deadCheck = true
 
 local pfsens = 'AUTO' -- Phantom Forces Sensitivity | 'AUTO' to automatically attempt to find it; if failed, will default to 1 | NOTE: WE DO NOT ACCOUNT FOR AIM SENSITIVITY MULTIPLIER & ASSUME IT'S AT ONE!!!
 
-local debug = getgenv().__astofloaim_show_debug_info or false -- Should we provide debug information in the top left of the screen
+local debug = globalEnv.__astofloaim_show_debug_info or false -- Should we provide debug information in the top left of the screen
 
 local limitRaycastToCircle = false -- FPS Optimization: Only Raycast within circle, regardless of other settings
 
 -- Zero Smoothing Precision | Improves accuracy on smoothing=0 by running multiple rounds per frame, may increase lag, only works on mousemoverel
-local zeroPrecision = not getgenv().__astolfoaim_disable_zero_precision
-local recursionCount = getgenv().__astolfoaim_zero_precision_recursion_count or 0
+local zeroPrecision = not globalEnv.__astolfoaim_disable_zero_precision
+local recursionCount = globalEnv.__astolfoaim_zero_precision_recursion_count or 0
 
 local maximumPixelsPerSecond = 10000
 local maximumPixelsPerFrame = 1000
@@ -153,14 +158,14 @@ local finalDiv = 2
 local hackulaSupport = false -- arsenal only, can flag or error elsewhere
 
 local useDesynchronizedThreads =
-  getgenv().__astolfoaim_internal_do_not_mess_with_this_unless_you_know_what_you_are_doing________________enable_desynced_threads_where_threads_are_being_synchronized
+  globalEnv.__astolfoaim_internal_do_not_mess_with_this_unless_you_know_what_you_are_doing________________enable_desynced_threads_where_threads_are_being_synchronized
 
-local doPcall = (not getgenv().__use_pcall) and function(a, ...)
+local doPcall = (not globalEnv.__use_pcall) and function(a, ...)
   return true, a(...)
 end or pcall
 ---@param func function
 ---@return function
-local getPcalledFunction = getgenv().__use_pcall
+local getPcalledFunction = globalEnv.__use_pcall
     and function(func, ...)
       local args = { ... }
       return function(...)
@@ -696,12 +701,12 @@ local remakeCircle = function()
 
   -- create aim url
   local movetl2 = function()
-    tl2.Position = (getgenv().__astolfoaim_always_center_circle and _Frame.AbsoluteSize / 2 or uis:GetMouseLocation())
-      + ((not getgenv().__astolfoaim_put_at_fixed_height) and NewVector2(0, mathmin(128, fovRadius)) or NewVector2(0, 32))
+    tl2.Position = (globalEnv.__astolfoaim_always_center_circle and _Frame.AbsoluteSize / 2 or uis:GetMouseLocation())
+      + ((not globalEnv.__astolfoaim_put_at_fixed_height) and NewVector2(0, mathmin(128, fovRadius)) or NewVector2(0, 32))
   end
   movetl2()
   moveCircle = function()
-    if getgenv().__astolfoaim_always_center_circle then
+    if globalEnv.__astolfoaim_always_center_circle then
       circle.Position = _Frame.AbsoluteSize / 2
     else
       circle.Position = uis:GetMouseLocation()
@@ -743,6 +748,8 @@ local connectionList = {}
 local destroyed = false
 local disconnectAimbot
 local redoConnections
+local userSettings = UserSettings()
+local userGameSettings = userSettings:GetService 'UserGameSettings'
 ---Sets Aimbot State & Connects shit
 ---@param state boolean
 ---@param setIsTeamed boolean
@@ -766,7 +773,7 @@ local SetAimbotState = function(state, setIsTeamed)
     id = id .. tostring(mathfloor(rng(0, 10000000) + rng(0, 10000000)))
   end
   local func = function(delta)
-    local ugs = UserSettings():GetService 'UserGameSettings'
+    local ugs = userGameSettings
     local _doClick = true
     if _queueRelease then
       mouse1release()
@@ -778,7 +785,7 @@ local SetAimbotState = function(state, setIsTeamed)
       local smoothLerp = 1
       if smoothing ~= 0 then
         smoothLerp = (1 - (smoothing + minSmoothing))
-        if not getgenv().__astolfoaim_unlink_smoothing_from_framerate then
+        if not globalEnv.__astolfoaim_unlink_smoothing_from_framerate then
           smoothLerp = smoothLerp * (updateDelta * 50)
         end
         smoothLerp = mathmin(smoothLerp, 1)
@@ -878,7 +885,7 @@ local SetAimbotState = function(state, setIsTeamed)
     if not isActive then
       return
     end
-    if getgenv().__astolfoaim_use_renderstepped_connection then
+    if globalEnv.__astolfoaim_use_renderstepped_connection then
       rsc = game:GetService('RunService').RenderStepped:Connect(func)
     else
       rsc = {
@@ -886,11 +893,11 @@ local SetAimbotState = function(state, setIsTeamed)
           game:GetService('RunService'):UnbindFromRenderStep(id)
         end,
       }
-      game:GetService('RunService'):BindToRenderStep(id, getgenv().__astolfoaim_renderstep_priority or 299, func)
+      game:GetService('RunService'):BindToRenderStep(id, globalEnv.__astolfoaim_renderstep_priority or 299, func)
     end
   end
   redoConnections()
-  getgenv().__astolfoaim_reconnect_to_render_step_on_latest_instance = redoConnections
+  globalEnv.__astolfoaim_reconnect_to_render_step_on_latest_instance = redoConnections
   disconnectAimbot = function()
     isEnabled = false
     destroyed = true
@@ -951,7 +958,7 @@ local SetAimbotState = function(state, setIsTeamed)
     end
     drawingObjects = {}
   end
-  getgenv().disconnectAimbot = disconnectAimbot
+  globalEnv.disconnectAimbot = disconnectAimbot
 end
 TablePush(
   connectionList,
@@ -981,8 +988,8 @@ TablePush(
 local API = setmetatable({
   Cleanup = function()
     pcall(function()
-      if getgenv().disconnectAimbot then
-        getgenv().disconnectAimbot()
+      if globalEnv.disconnectAimbot then
+        globalEnv.disconnectAimbot()
       end
     end)
   end,
