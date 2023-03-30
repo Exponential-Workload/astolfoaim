@@ -105,9 +105,24 @@ end
 -- BUILD | DO NOT CHANGE
 local build = 'DEV'
 if build == 'DEV' then
-  build = globalEnv.AstolfoAimCommit
-    or globalEnv.AstolfoAimBranch and (globalEnv.AstolfoAimUsername and ('DEV<' .. globalEnv.AstolfoAimUsername .. '>/' .. (globalEnv.AstolfoAimCommit or globalEnv.AstolfoAimBranch)) or 'BETA/' .. (globalEnv.AstolfoAimCommit or globalEnv.AstolfoAimBranch))
-    or build
+  local commit = globalEnv.AstolfoAimCommit
+  local branch = globalEnv.AstolfoAimBranch
+  local username = globalEnv.AstolfoAimUsername
+  if commit or branch == 'main' or branch == 'master' then
+    branch = nil
+  end
+  local releaseType = commit and 'COMMIT' or branch and 'BETA' or username and 'FORK' or 'RELEASE'
+  if username then
+    if commit or branch then
+      build = '<' .. username .. '>' .. releaseType .. '/' .. (commit or branch) .. ''
+    else
+      build = '<' .. username .. '>' .. releaseType
+    end
+  elseif commit or branch then
+    build = releaseType .. '/' .. (commit or branch)
+  else
+    build = releaseType
+  end
 end
 ---------------------------------------
 -- settings:
