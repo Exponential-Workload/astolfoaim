@@ -1022,9 +1022,9 @@ local API = setmetatable({
       if globalEnv.disconnectAimbot then
         if rejoin then
           if import and queue_on_teleport then
-            error(
+            queue_on_teleport(
               string.format(
-                [[if not game:IsLoaded() then game.Loaded = true end;
+                [[if not game:IsLoaded() then if not pcall(function()game.Loaded:Wait();end) then task.wait(2) end end;
 local globalEnv = getgenv();
 %s
 %s
@@ -1039,6 +1039,9 @@ import(5311);
             )
           end
           rejoin()
+          while sleep(10000) do
+            sleep(10000)
+          end
         else
           globalEnv.disconnectAimbot()
         end
