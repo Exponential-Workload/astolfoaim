@@ -189,23 +189,25 @@ if build == 'DEV' then
   local commit = globalEnv.AstolfoAimCommit
   local branch = globalEnv.AstolfoAimBranch
   local username = globalEnv.AstolfoAimUsername
-  if commit or branch == 'main' or branch == 'master' then
-    branch = nil
-  end
-  local releaseType = commit and 'COMMIT' or branch and 'BETA' or username and 'FORK' or 'RELEASE'
-  if username then
-    if commit or branch then
-      build = '<' .. username .. '>' .. releaseType .. '/' .. (commit or branch) .. ''
-    else
-      build = '<' .. username .. '>' .. releaseType
+  if commit or branch or username then
+    if commit or branch == 'main' or branch == 'master' then
+      branch = nil
     end
-  elseif commit or branch then
-    build = releaseType .. '/' .. (commit or branch)
-  else
-    build = releaseType
-  end
-  if releaseType ~= 'RELEASE' and releaseType ~= 'FORK' then
-    debug = true
+    local releaseType = commit and 'COMMIT' or branch and 'BETA' or username and 'FORK' or 'RELEASE'
+    if username then
+      if commit or branch then
+        build = '<' .. username .. '>' .. releaseType .. '/' .. (commit or branch) .. ''
+      else
+        build = '<' .. username .. '>' .. releaseType
+      end
+    elseif commit or branch then
+      build = releaseType .. '/' .. (commit or branch)
+    else
+      build = releaseType
+    end
+    if releaseType ~= 'RELEASE' and releaseType ~= 'FORK' then
+      debug = true
+    end
   end
 end
 ---------------------------------------
@@ -1020,9 +1022,10 @@ local API = setmetatable({
       if globalEnv.disconnectAimbot then
         if rejoin then
           if import and queue_on_teleport then
-            queue_on_teleport(
+            error(
               string.format(
-                [[local globalEnv = getgenv();
+                [[if not game:IsLoaded() then game.Loaded = true end;
+local globalEnv = getgenv();
 %s
 %s
 %s
