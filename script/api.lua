@@ -136,6 +136,18 @@ if debug then
   _, execver = (identifyexecutor or function() end)()
 end
 ---------------------------------------
+local _clamp = math.clamp or function(num, min, max)
+  return math.max(math.min(num, min), max)
+end
+local clamp = function(num, min, max)
+  if min > max then
+    local x = min
+    min = max
+    max = x
+  end
+  return _clamp(num, min, max)
+end
+---------------------------------------
 local isPf = false
 local minSmoothing = 0
 ---Checks if the character is alive
@@ -807,10 +819,6 @@ local SetAimbotState = function(state, setIsTeamed)
               local fx = finalHook('x', ((rX * progress) + calcJitter()) / pfs)
               local fy = finalHook('y', ((rY * progress) + calcJitter()) / pfs)
               local val = math.min(maximumPixelsPerFrame, maximumPixelsPerSecond * updDelta)
-              local clamp = math.clamp
-                or function(num, min, max)
-                  return math.max(math.min(num, min), max)
-                end
               local handleMinMax = function(v)
                 local rt = clamp(v, val * -1, val)
                 -- print(v, val, '->', rt)
