@@ -106,7 +106,7 @@ end
 local build = 'DEV'
 if build == 'DEV' then
   build = globalEnv.AstolfoAimCommit
-    or globalEnv.AstolfoAimBranch and (globalEnv.AstolfoAimUsername and ('DEV<' .. globalEnv.AstolfoAimUsername .. '>/' .. (globalEnv.AstolfoAimBranch or globalEnv.AstolfoAimCommit)) or 'BETA/' .. (globalEnv.AstolfoAimBranch or globalEnv.AstolfoAimCommit))
+    or globalEnv.AstolfoAimBranch and (globalEnv.AstolfoAimUsername and ('DEV<' .. globalEnv.AstolfoAimUsername .. '>/' .. (globalEnv.AstolfoAimCommit or globalEnv.AstolfoAimBranch)) or 'BETA/' .. (globalEnv.AstolfoAimCommit or globalEnv.AstolfoAimBranch))
     or build
 end
 ---------------------------------------
