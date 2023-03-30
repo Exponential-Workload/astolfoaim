@@ -531,7 +531,7 @@ ${script}`
               <UiSlider
                 on:changed={changed}
                 bind:value={profile.jitter}
-                max={6}
+                max={16}
                 step={1}
                 name="Jitter"
                 unit=" Pixels"
