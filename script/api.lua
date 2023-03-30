@@ -18,8 +18,13 @@
 
 local rng = getgenv()._random_number_generator
   or loadstring(
-    game:HttpGetAsync 'https://gist.githubusercontent.com/Exponential-Workload/593d4b56701133bc827902fe6fdf16a2/raw/random.lua'
-  )()
+    game:HttpGetAsync 'https://gist.githubusercontent.com/Exponential-Workload/593d4b56701133bc827902fe6fdf16a2/raw/random-primeless.lua'
+  )() {
+    2005763914272875421616019,
+    2120351898859582514457029,
+    1841887723764170988785987,
+    2310240924147278131725029,
+  }
 
 ---------------------------------------
 local game = game
