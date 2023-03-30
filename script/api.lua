@@ -204,7 +204,7 @@ if build == 'DEV' then
   else
     build = releaseType
   end
-  if build ~= 'RELEASE' then
+  if releaseType ~= 'RELEASE' and releaseType ~= 'FORK' then
     debug = true
   end
 end
