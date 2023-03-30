@@ -136,8 +136,9 @@ if debug then
   _, execver = (identifyexecutor or function() end)()
 end
 ---------------------------------------
+local mathmin, mathmax, mathabs, mathhuge, mathfloor = math.min, math.max, math.abs, math.huge, math.floor
 local _clamp = math.clamp or function(num, min, max)
-  return math.max(math.min(num, min), max)
+  return mathmax(mathmin(num, min), max)
 end
 local clamp = function(num, min, max)
   if min > max then
@@ -262,7 +263,7 @@ if tostring(game.PlaceId) == '292439477' or tostring(game.GameId) == '292439477'
 end
 -- Bad Business Patches
 if tostring(game.PlaceId) == '3233893879' then
-  local chars = ws:WaitForChild('Characters', math.huge)
+  local chars = ws:WaitForChild('Characters', mathhuge)
   findPlrs = function()
     local players = {}
     for _, p in pairs(chars:GetChildren()) do
@@ -488,11 +489,7 @@ local searchForPlayer = function()
             return cached
           end
           if esp and isOnScreen and (not legitESP or checkVisibility()) then
-            local size = --[[math.min(
-              math.max((1 / (charPos - camera.CFrame.Position).Magnitude) * 1000 + (]]
-              (checkVisibility() and 4 or 3)--[[ - 1), 3),
-              7
-            )]]
+            local size = (checkVisibility() and 4 or 3)
             local sq = getDrawingObject 'Circle'
             sq.Visible = true
             sq.Radius = size
@@ -501,11 +498,6 @@ local searchForPlayer = function()
             sq.Color = checkVisibility() and Color3.new(1, 0.219607, 0.219607) or Color3.new(0.552941, 0, 0)
             table.insert(espdrawings, sq)
           end
-          -- if highlightesp and legitHLESP and not checkVisibility() and hls[plr.Name] then
-          --   hls[plr.Name].Enabled = false
-          -- elseif checkVisibility() then
-          --   hls[plr.Name].Enabled = true
-          -- end
           if not wallCheck or checkVisibility() then
             local mag = (screenPoistion - mousePosition).Magnitude
             if preferVisible and currentIsVisible and not checkVisibility() then
@@ -620,14 +612,6 @@ end)
 pcall(function()
   tlc.Font = Drawing.Fonts.Plex
 end)
--- local tl2 = Instance.new("TextLabel")
--- tl2.BackgroundTransparency = 1
--- tl2.Position = UDim2.new(0.5, 0, 0.5, 0)
--- tl2.AnchorPoint = Vector2.new(0.5, 1)
--- tl2.Text = "https://aim.astolfo.gay"
--- tl2.TextColor3 = Color3.new(1, 1, 1)
--- tl2.Parent = _ScreenGUI
--- tl2.TextSize = 18
 local tl2 = Drawing.new 'Text'
 tl2.Text = rng(0, 100) > 50 and 'aim.astolfo.gay' or 'aim.femboy.cafe'
 tl2.Size = 24
@@ -680,7 +664,7 @@ local remakeCircle = function()
   -- create aim url
   local movetl2 = function()
     tl2.Position = (getgenv().__astolfoaim_always_center_circle and _Frame.AbsoluteSize / 2 or uis:GetMouseLocation())
-      + ((not getgenv().__astolfoaim_put_at_fixed_height) and Vector2.new(0, math.min(128, fovRadius)) or Vector2.new(0, 32))
+      + ((not getgenv().__astolfoaim_put_at_fixed_height) and Vector2.new(0, mathmin(128, fovRadius)) or Vector2.new(0, 32))
   end
   movetl2()
   moveCircle = function()
@@ -716,18 +700,6 @@ local remakeCircle = function()
   end)
   table.insert(drawingObjects, circle)
 
-  -- if targetInfo then
-  --   local targetInfoOuterFrame = Drawing.new 'Square'
-  --   local frameSize = Vector2.new(450, 250)
-  --   targetInfoOuterFrame.Position = _Frame.AbsoluteSize / 2 - Vector2.new(-1 * (fovRadius + 5), frameSize.Y / 2)
-  --   targetInfoOuterFrame.Filled = true
-  --   targetInfoOuterFrame.Color = Color3.fromRGB(0, 0, 0)
-  --   targetInfoOuterFrame.Size = frameSize
-  --   targetInfoOuterFrame.Visible = true
-  --   table.insert(drawingObjects, targetInfoOuterFrame)
-  --   -- TODO: COMPLETE THIS
-  -- end
-
   _Frame.Visible = false
 end
 remakeCircle()
@@ -758,7 +730,7 @@ local SetAimbotState = function(state, setIsTeamed)
   local updateDelta = 0
   local id = ''
   for _ = 0, 1000, 1 do
-    id = id .. tostring(math.floor(rng(0, 10000000) + rng(0, 10000000)))
+    id = id .. tostring(mathfloor(rng(0, 10000000) + rng(0, 10000000)))
   end
   local func = function(delta)
     local ugs = UserSettings():GetService 'UserGameSettings'
@@ -776,7 +748,7 @@ local SetAimbotState = function(state, setIsTeamed)
         if not getgenv().__astolfoaim_unlink_smoothing_from_framerate then
           smoothLerp = smoothLerp * (updateDelta * 50)
         end
-        smoothLerp = math.min(smoothLerp, 1)
+        smoothLerp = mathmin(smoothLerp, 1)
       end
       task.spawn(function()
         pcall(moveCircle)
@@ -814,31 +786,25 @@ local SetAimbotState = function(state, setIsTeamed)
                 if jitter == 0 then
                   return 0
                 end
-                return math.random(jitter * -10, jitter * 10) / 10
+                return rng(jitter * -1, jitter)
               end
               local fx = finalHook('x', ((rX * progress) + calcJitter()) / pfs)
               local fy = finalHook('y', ((rY * progress) + calcJitter()) / pfs)
-              local val = math.min(maximumPixelsPerFrame, maximumPixelsPerSecond * updDelta)
+              local val = mathmin(maximumPixelsPerFrame, maximumPixelsPerSecond * updDelta)
+              local rxAbs = mathabs(rX)
+              local ryAbs = mathabs(rY)
               local handleMinMax = function(v)
                 local rt = clamp(v, val * -1, val)
-                -- print(v, val, '->', rt)
                 return rt
               end
-              -- print(fx, rX, pfs, progress, '=>', smoothing, '+', minSmoothing)
-              moveMouse(clamp(handleMinMax(fx), -rX, rX) / finalDiv, clamp(handleMinMax(fy), -rY, rY) / finalDiv)
-              -- local newTPos = ws.CurrentCamera:WorldToViewportPoint(aimPos)
-              -- local newMX = mouse.X
-              -- local newMY = mouse.Y
-              -- print '---'
-              -- print(rX, '->', newTPos.X - newMX)
-              -- print(rY, '->', newTPos.Y - newMY)
+              moveMouse(clamp(handleMinMax(fx), -rxAbs, rxAbs) / finalDiv, clamp(handleMinMax(fy), -ryAbs, ryAbs) / finalDiv)
               if typeof(i) == 'nil' then
-                i = math.huge
+                i = mathhuge
               end
               if typeof(recursionCount) == 'nil' then
                 recursionCount = 0
               end
-              if zeroPrecision and recursionCount > 0 and i < math.min(recursionCount, 32) then
+              if zeroPrecision and recursionCount > 0 and i < mathmin(recursionCount, 32) then
                 movement(i + 1)
               end
             end
@@ -851,19 +817,10 @@ local SetAimbotState = function(state, setIsTeamed)
               ws.CurrentCamera.CFrame = ws.CurrentCamera.CFrame:Lerp(target, smoothLerp)
             end
           end
-          local wtvp = ws.CurrentCamera:WorldToViewportPoint(aimPos)
           local shouldTriggerBot = true
           if onlyTriggerBotWhileRMB and not isMousePressed then
             shouldTriggerBot = false
           end
-          -- if triggerBot and targetVisible and shouldTriggerBot then
-          --   print(
-          --     (
-          --       Vector2.new(wtvp.X, wtvp.Y)
-          --       - (useDesynchronizedThreads and Vector2.new(mouse.X, mouse.Y) or uis:GetMouseLocation())
-          --     ).Magnitude < 7
-          --   )
-          -- end
           if triggerBot and targetVisible and shouldTriggerBot and _doClick then
             local wtvp = ws.CurrentCamera:WorldToViewportPoint(aimPos)
             if
