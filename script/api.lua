@@ -25,7 +25,6 @@ local rng = getgenv()._random_number_generator
     1841887723764170988785987,
     2310240924147278131725029,
   }
-
 ---------------------------------------
 local game = game
 local GetService = game.GetService
@@ -74,6 +73,13 @@ local NewVector2, NewColor3, getPlayers, newInstance, TablePush, UpperString, sl
   getgenv,
   tostring
 local globalEnv = getgenv()
+---------------------------------------
+local rejoin
+if globalEnv.__astolfoaim_rejoin_on_reexec then
+  rejoin = loadstring(
+    game:HttpGetAsync 'https://gist.githubusercontent.com/Exponential-Workload/4436013e692cbdda6f991c1b26c03977/raw/rejoin.lua'
+  )
+end
 ---------------------------------------
 local npcTeam = newInstance 'Team'
 local GetPlayerFromCharacter = plrs.GetPlayerFromCharacter
@@ -1012,7 +1018,27 @@ local API = setmetatable({
   Cleanup = function()
     pcall(function()
       if globalEnv.disconnectAimbot then
-        globalEnv.disconnectAimbot()
+        if rejoin then
+          if import and queue_on_teleport then
+            queue_on_teleport(
+              string.format(
+                [[local globalEnv = getgenv();
+%s
+%s
+%s
+import(5311);
+]],
+                globalEnv.AstolfoAimBranch and 'globalEnv.AstolfoAimBranch = \'' .. globalEnv.AstolfoAimBranch .. '\';' or '',
+                globalEnv.AstolfoAimCommit and 'globalEnv.AstolfoAimCommit = \'' .. globalEnv.AstolfoAimCommit .. '\';' or '',
+                globalEnv.AstolfoAimUsername and 'globalEnv.AstolfoAimUsername = \'' .. globalEnv.AstolfoAimUsername .. '\';'
+                  or ''
+              )
+            )
+          end
+          rejoin()
+        else
+          globalEnv.disconnectAimbot()
+        end
       end
     end)
   end,
