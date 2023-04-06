@@ -97,6 +97,7 @@ local DestroyInstance = npcTeam.Destroy
 local WaitForChildWhichIsA = function(obj,type,maxTime,recursive)
   local r = FindFirstChildWhichIsA(obj,type,recursive);
   if r then return r end;
+  if not maxTime then maxTime = 5;end;
   if maxTime <= 0 then return end;
   while maxTime >= 0 and not r do r = FindFirstChildWhichIsA(obj,type,recursive);maxTime = maxTime - task.wait(0) end;
 end;
