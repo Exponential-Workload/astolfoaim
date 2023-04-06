@@ -306,7 +306,11 @@ local findHumanoids = (function()
   end
 end)()
 -- PF hacked-in shit:
-if tostring(game.PlaceId) == '292439477' or tostring(game.GameId) == '292439477' then
+if
+  tostring(game.PlaceId) == '292439477'
+  or tostring(game.GameId) == '292439477'
+  or tostring(game.PlaceId) == '3568020459'
+then
   isPf = true
   local findTeamByName = function(teamName)
     for _, o in pairs(GetChildren(tms)) do
@@ -327,6 +331,9 @@ if tostring(game.PlaceId) == '292439477' or tostring(game.GameId) == '292439477'
     return players
   end
   teamCheck = function(team)
+    if not team or not lp.Team then
+      return false
+    end
     return team.TeamColor ~= lp.Team.TeamColor
   end
   minSmoothing = 0.15
