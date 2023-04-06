@@ -94,19 +94,38 @@ local GetDescendants = plrs.GetDescendants
 local IsDescendantOf = plrs.IsDescendantOf
 local DestroyInstance = npcTeam.Destroy
 ---------------------------------------
-local WaitForChildWhichIsA = function(obj,type,maxTime,recursive)
-  local r = FindFirstChildWhichIsA(obj,type,recursive);
-  if r then return r end;
-  if not maxTime then maxTime = 5;end;
-  if maxTime <= 0 then return end;
-  while maxTime >= 0 and not r do r = FindFirstChildWhichIsA(obj,type,recursive);maxTime = maxTime - task.wait(0) end;
-end;
+local WaitForChildWhichIsA = function(obj, type, maxTime, recursive)
+  local r = FindFirstChildWhichIsA(obj, type, recursive)
+  if r then
+    return r
+  end
+  if not maxTime then
+    maxTime = 5
+  end
+  if maxTime <= 0 then
+    return
+  end
+  while maxTime >= 0 and not r do
+    r = FindFirstChildWhichIsA(obj, type, recursive)
+    maxTime = maxTime - task.wait(0)
+  end
+end
 ---------------------------------------
 local uiContainer = (function()
-    local s, cgui = pcall(GetService, game, 'CoreGui')
-    if not s then cgui = WaitForChildWhichIsA(lp,'PlayerGui');end;
-    return (cloneref or function(v)return v;end)(gethiddengui and gethiddengui() or gethui and gethui() or cgui:FindFirstChild'RobloxGui' or cgui:FindFirstChildOfClass 'ScreenGui' or cgui)
-end)();
+  local s, cgui = pcall(GetService, game, 'CoreGui')
+  if not s then
+    cgui = WaitForChildWhichIsA(lp, 'PlayerGui')
+  end
+  return (cloneref or function(v)
+    return v
+  end)(
+    gethiddengui and gethiddengui()
+      or gethui and gethui()
+      or cgui:FindFirstChild 'RobloxGui'
+      or cgui:FindFirstChildOfClass 'ScreenGui'
+      or cgui
+  )
+end)()
 ---------------------------------------
 local aimInstance = 'Head'
 ---Moves the mouse by x,y pixels
