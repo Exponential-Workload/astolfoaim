@@ -34,24 +34,9 @@ local uis = GetService(game, 'UserInputService')
 local ws = GetService(game, 'Workspace')
 local tms = GetService(game, 'Teams')
 ---------------------------------------
-local getContainer = (function()
-    local cloneref = cloneref or function(ref) 
-        return ref
-    end
+local uiContainer = (function()
     local cgui = GetService(game, 'CoreGui')
-    local cguiFindFirstChild = cgui.FindFirstChild
-    local cguiFindFirstChildOfClass = cgui.FindFirstChildOfClass
-    local cguiChildOrSelf = cguiFindFirstChild(cgui, 'RobloxGui') or cguiFindFirstChildOfClass(cgui, 'ScreenGui') or cgui
-    local hiddenContainer = gethiddengui and gethiddengui() or gethui and gethui()
-    if hiddenContainer then
-        return cloneref(hiddenContainer)
-    else
-        if cguiChildOrSelf then
-            return cloneref(cguiChildOrSelf)
-        else
-            return cloneref(cgui)
-        end
-    end
+    return (cloneref or function(v)return v;end)(gethiddengui and gethiddengui() or gethui and gethui() or cgui:FindFirstChild'RobloxGui' or cgui:FindFirstChildOfClass 'ScreenGui' or cgui)
 end)()
 ---------------------------------------
 local mathmin, mathmax, mathabs, mathhuge, mathfloor = math.min, math.max, math.abs, math.huge, math.floor
@@ -524,7 +509,7 @@ local searchForPlayer = function()
         -- ESP
         if highlightesp and not hls[plr.Name] then
           local hl = newInstance 'Highlight'
-          hl.Parent = getContainer
+          hl.Parent = uiContainer
           if legitHLESP then
             hl.DepthMode = Enum.HighlightDepthMode.Occluded
           else
@@ -642,7 +627,7 @@ end))
 
 local _ScreenGUI = newInstance 'ScreenGui'
 _ScreenGUI.Name = rng(0, 100000000)
-_ScreenGUI.Parent = getContainer
+_ScreenGUI.Parent = uiContainer
 _ScreenGUI.IgnoreGuiInset = true
 
 spawnTask(function()
