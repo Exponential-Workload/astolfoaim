@@ -111,21 +111,28 @@ local WaitForChildWhichIsA = function(obj, type, maxTime, recursive)
   end
 end
 ---------------------------------------
-local uiContainer = (function()
-  local s, cgui = pcall(GetService, game, 'CoreGui')
-  if not s then
-    cgui = WaitForChildWhichIsA(lp, 'PlayerGui')
-  end
-  return (cloneref or function(v)
-    return v
-  end)(
-    gethiddengui and gethiddengui()
-      or gethui and gethui()
-      or cgui:FindFirstChild 'RobloxGui'
-      or cgui:FindFirstChildOfClass 'ScreenGui'
-      or cgui
-  )
-end)()
+local uiContainer = gethiddengui and gethiddengui()
+  or gethui and gethui()
+  or (function()
+    local s, cgui = pcall(GetService, game, 'CoreGui')
+    local createScreenGui = function(parent)
+      cgui = Instance.new 'ScreenGui'
+      cgui.Name = rng(0, 10000000000)
+      cgui.Parent = parent
+      return cgui
+    end
+    if not s or not cgui then
+      return createScreenGui(WaitForChildWhichIsA(lp, 'PlayerGui'))
+    end
+    return (cloneref or function(v)
+      return v
+    end)(
+      cgui:FindFirstChild 'RobloxGui'
+        -- or cgui:FindFirstChildOfClass 'ScreenGui' -- Bad due to it being possibly disabled
+        or createScreenGui(cgui)
+        or cgui
+    )
+  end)()
 ---------------------------------------
 local aimInstance = 'Head'
 ---Moves the mouse by x,y pixels
