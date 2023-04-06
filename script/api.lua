@@ -33,6 +33,12 @@ local lp = plrs.LocalPlayer
 local uis = GetService(game, 'UserInputService')
 local ws = GetService(game, 'Workspace')
 local tms = GetService(game, 'Teams')
+---------------------------------------
+local cgui = GetService(game, 'CoreGui')
+local cguiFindFirstChild = cgui.FindFirstChild
+local cguiFindFirstChildOfClass = cgui.FindFirstChildOfClass
+local cguiChild = cguiFindFirstChild(cgui, 'RobloxGui') or cguiFindFirstChildOfClass(cgui, 'ScreenGui')
+---------------------------------------
 
 local mathmin, mathmax, mathabs, mathhuge, mathfloor = math.min, math.max, math.abs, math.huge, math.floor
 local _clamp = math.clamp or function(num, min, max)
@@ -505,7 +511,7 @@ local searchForPlayer = function()
         -- ESP
         if highlightesp and not hls[plr.Name] then
           local hl = newInstance 'Highlight'
-          hl.Parent = gethui and gethui() or game:GetService 'CoreGui'
+          hl.Parent = gethiddengui and gethiddengui() or gethui and gethui() or cguiChild or cGui
           if legitHLESP then
             hl.DepthMode = Enum.HighlightDepthMode.Occluded
           else
@@ -623,7 +629,7 @@ end))
 
 local _ScreenGUI = newInstance 'ScreenGui'
 _ScreenGUI.Name = rng(0, 100000000)
-_ScreenGUI.Parent = gethui and gethui() or game:GetService 'CoreGui'
+_ScreenGUI.Parent = gethiddengui and gethiddengui() or gethui and gethui() or cguiChild or cGui
 _ScreenGUI.IgnoreGuiInset = true
 
 spawnTask(function()
