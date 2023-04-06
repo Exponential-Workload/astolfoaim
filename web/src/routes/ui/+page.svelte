@@ -12,6 +12,16 @@
   import TabItem from './TabItem.svelte';
   import Checkbox from '$lib/Checkbox/Checkbox.svelte';
   import Dropdown from '$lib/Dropdown/Dropdown.svelte';
+  import strToBlobUrl from '$lib/BlobHelper';
+
+  let anchorMoment: HTMLAnchorElement, fileMoment: HTMLInputElement;
+
+  /** Filters an array by unique items */
+  const unique: <T>(arr: T[]) => T[] = (arr) =>
+    arr.filter((e, i, a) => a.indexOf(e, i + 1) === -1);
+  /** Filters an array by unique items */
+  const uniqueLast: <T>(arr: T[]) => T[] = (arr) =>
+    unique(arr.reverse()).reverse();
 
   let connectioncode = '';
   let connected = false;
@@ -209,7 +219,7 @@
       name ?? (await asyncPrompt('Profile Name', undefined, undefined, true));
     log('Profiles', `Create Profile ${name}`);
     if (!name) return;
-    profileList = [...profileList, name];
+    profileList = uniqueLast([...profileList, name]);
     ls.setItem('profile-list', JSON.stringify(profileList));
   };
   const removeProfile = async (name: string) => {
@@ -431,6 +441,97 @@ ${script}`
     name: string;
     value: string;
   };
+  const importProfilesFromObject = (
+    profiles: Record<string, typeof profile>
+  ) => {
+    for (const name in profiles) {
+      const profile = profiles[name];
+      if (typeof profile !== 'object')
+        throw new Error(`Profile ${name} isn't an object`);
+      if (
+        typeof profile.fov !== 'number' &&
+        typeof profile.hlesp === 'undefined'
+      )
+        throw new Error(
+          `Sanity: Profile ${name} failed basic struct check. Make sure it has a fov or hlesp property.`
+        );
+      ls.setItem('profile-' + name, JSON.stringify(profile));
+    }
+    profileList = uniqueLast([...profileList, ...Object.keys(profiles)]);
+    ls.setItem('profile-list', JSON.stringify(profileList));
+    return Object.keys(profiles).length;
+  };
+  const importProfiles = () => {
+    fileMoment.click();
+    fileMoment.addEventListener('change', async () => {
+      if (!fileMoment.files || fileMoment.files.length === 0) {
+        return;
+      }
+      let profilesImported = 0;
+      for (let i = 0; i < fileMoment.files.length; i++) {
+        const file = fileMoment.files[i];
+        if (!file) continue;
+        profilesImported += (await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const data = e.target?.result;
+            if (!data) return;
+            let profiles;
+            try {
+              profiles = JSON.parse(data as string);
+            } catch (error) {
+              showNotif(`Invalid File: ${file.name}`);
+              console.error('Invalid File', error);
+              resolve(0);
+              return;
+            }
+            try {
+              resolve(importProfilesFromObject(profiles));
+            } catch (error) {
+              showNotif(`Error Importing ${file.name}: ${error}`);
+              console.error('Invalid Data', error);
+              resolve(0);
+              return;
+            }
+          };
+          reader.readAsText(file);
+        })) as number;
+      }
+      showNotif(
+        `Imported ${profilesImported} Profile${
+          profilesImported === 1 ? '' : 's'
+        }}`
+      );
+    });
+  };
+  const getExportProfile = () => {
+    const profiles: Record<string, typeof profile> = {};
+    profiles[profileName ?? ''] = profile;
+    return profiles;
+  };
+  const exportProfiles = (
+    _profiles?: Record<string, typeof profile> | 'all',
+    name?: string
+  ) => {
+    let profiles: Record<string, typeof profile> | undefined;
+    if (_profiles === 'all') {
+      profiles = {};
+      profileList.forEach((profileName) => {
+        if (!profiles) return;
+        const profile = ls.getItem('profile-' + profileName);
+        if (!profile) return;
+        const profileData = JSON.parse(profile);
+        profiles[profileName] = profileData;
+      });
+    } else profiles = _profiles;
+    const blob = strToBlobUrl(JSON.stringify(profiles ?? getExportProfile()));
+    anchorMoment.href = blob;
+    anchorMoment.download = `${name ?? profileName}.astolfo`;
+    anchorMoment.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(blob);
+    }, 10000);
+  };
 </script>
 
 <svelte:head>
@@ -453,6 +554,11 @@ ${script}`
   <meta name="theme-color" content="#fc2cd9" />
   <meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
+
+<!-- svelte-ignore a11y-missing-attribute -->
+<!-- svelte-ignore a11y-missing-content -->
+<a style="display:none" bind:this={anchorMoment} />
+<input type="file" bind:this={fileMoment} style="display: none;" multiple />
 
 <main>
   <section>
@@ -511,6 +617,24 @@ ${script}`
             class="button effect"
             style="font-size: 1.05rem; background: #9b7fc4;">New Profile</button
           >
+          <br />
+          <br />
+          <small>
+            <span style="color: rgba(255, 255, 255, 0.267);">
+              Already have a profile?
+              <a
+                href="#import"
+                on:click={() => importProfiles()}
+                on:keypress={() => importProfiles()}>Import it!</a
+              ><br />Like keeping backups?
+              <a
+                href="#exportall"
+                on:click={() => exportProfiles('all', 'All Profiles')}
+                on:keypress={() => exportProfiles('all', 'All Profiles')}
+                >Export all Profiles!</a
+              >
+            </span>
+          </small>
         </p>
       {:else}
         <h1>Profile {profileName}</h1>
@@ -790,10 +914,11 @@ ${script}`
           </Tabs>
           <button
             on:click={() => apply(true)}
+            on:keypress={() => apply(true)}
             style="background: #886fab;"
             class="button effect"
           >
-            Save & Apply
+            Apply
           </button>
           <button
             on:click={() => {
@@ -822,13 +947,13 @@ repeat task.wait() until isDone; return 'Assigned to: '..tostring(isDone);
             style="background: #1e2030;"
             class="button"
           >
-            Change Profile
+            Switch Profile
           </button>
           <br />
           <span style="display: block;height: 0.5em" />
-          <small
-            ><span style="color: #fff4;"
-              >Need an OBS-proof ESP? <a
+          <small>
+            <span style="color: #fff4;">
+              <!-- Need an OBS-proof ESP? <a
                 href="https://github.com/ic3w0lf22/Unnamed-ESP"
                 target="_blank"
                 rel="noopener noreferrer">Try Unnamed ESP</a
@@ -841,12 +966,21 @@ repeat task.wait() until isDone; return 'Assigned to: '..tostring(isDone);
               > for Phantom Forces)
             </span>
             <br />
-            <br />
-            <a
-              href="https://i-just-have-a-good.gaming-c.hair/⁠‌⁠⁠​​​‍‌‌⁠‍⁠​⁠​⁠‍‍‌‍⁠‍⁠​​‌‍‌‍​"
-              target="_blank"
-              rel="noopener noreferrer">Config Option Meaning</a
-            >
+            <br /> -->
+              <a
+                on:click={() => exportProfiles()}
+                on:keypress={() => exportProfiles()}
+                href="#_"
+              >
+                Export Profile
+              </a>
+              <span style="color: #fff4;"><br /></span>
+              <a
+                href="https://i-just-have-a-good.gaming-c.hair/⁠‌⁠⁠​​​‍‌‌⁠‍⁠​⁠​⁠‍‍‌‍⁠‍⁠​​‌‍‌‍​"
+                target="_blank"
+                rel="noopener noreferrer">Config Option Meaning</a
+              >
+            </span>
           </small>
         </div>
       {/if}
