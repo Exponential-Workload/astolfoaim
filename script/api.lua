@@ -34,14 +34,26 @@ local uis = GetService(game, 'UserInputService')
 local ws = GetService(game, 'Workspace')
 local tms = GetService(game, 'Teams')
 ---------------------------------------
-local cgui = GetService(game, 'CoreGui')
-local cguiFindFirstChild = cgui.FindFirstChild
-local cguiFindFirstChildOfClass = cgui.FindFirstChildOfClass
-local cguiChildOrSelf = cguiFindFirstChild(cgui, 'RobloxGui') or cguiFindFirstChildOfClass(cgui, 'ScreenGui') or cgui
+local getContainer = (function()
+    local cloneref = cloneref or function(ref) 
+        return ref
+    end
+    local cgui = GetService(game, 'CoreGui')
+    local cguiFindFirstChild = cgui.FindFirstChild
+    local cguiFindFirstChildOfClass = cgui.FindFirstChildOfClass
+    local cguiChildOrSelf = cguiFindFirstChild(cgui, 'RobloxGui') or cguiFindFirstChildOfClass(cgui, 'ScreenGui') or cgui
+    local hiddenContainer = gethiddengui and gethiddengui() or gethui and gethui()
+    if hiddenContainer then
+        return cloneref(hiddenContainer)
+    else
+        if cguiChildOrSelf then
+            return cloneref(cguiChildOrSelf)
+        else
+            return cloneref(cgui)
+        end
+    end
+end)()
 ---------------------------------------
-local hiddenContainer = gethiddengui and gethiddengui() or gethui and gethui()
----------------------------------------
-
 local mathmin, mathmax, mathabs, mathhuge, mathfloor = math.min, math.max, math.abs, math.huge, math.floor
 local _clamp = math.clamp or function(num, min, max)
   return mathmax(mathmin(num, min), max)
@@ -114,7 +126,6 @@ local mouse = lp:GetMouse()
 if not Drawing then
   error 'No Drawing'
 end
-
 ---------------------------------------
 -- settings:
 local fovRadius = 180
@@ -513,7 +524,7 @@ local searchForPlayer = function()
         -- ESP
         if highlightesp and not hls[plr.Name] then
           local hl = newInstance 'Highlight'
-          hl.Parent = hiddenContainer or cguiChildOrSelf
+          hl.Parent = getContainer
           if legitHLESP then
             hl.DepthMode = Enum.HighlightDepthMode.Occluded
           else
@@ -631,7 +642,7 @@ end))
 
 local _ScreenGUI = newInstance 'ScreenGui'
 _ScreenGUI.Name = rng(0, 100000000)
-_ScreenGUI.Parent = hiddenContainer or cguiChildOrSelf
+_ScreenGUI.Parent = getContainer
 _ScreenGUI.IgnoreGuiInset = true
 
 spawnTask(function()
