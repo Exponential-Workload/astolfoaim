@@ -34,11 +34,6 @@ local uis = GetService(game, 'UserInputService')
 local ws = GetService(game, 'Workspace')
 local tms = GetService(game, 'Teams')
 ---------------------------------------
-local uiContainer = (function()
-    local cgui = GetService(game, 'CoreGui')
-    return (cloneref or function(v)return v;end)(gethiddengui and gethiddengui() or gethui and gethui() or cgui:FindFirstChild'RobloxGui' or cgui:FindFirstChildOfClass 'ScreenGui' or cgui)
-end)()
----------------------------------------
 local mathmin, mathmax, mathabs, mathhuge, mathfloor = math.min, math.max, math.abs, math.huge, math.floor
 local _clamp = math.clamp or function(num, min, max)
   return mathmax(mathmin(num, min), max)
@@ -90,6 +85,7 @@ local npcTeam = newInstance 'Team'
 local GetPlayerFromCharacter = plrs.GetPlayerFromCharacter
 local FindFirstChild = plrs.FindFirstChild
 local FindFirstChildOfClass = plrs.FindFirstChildOfClass
+local FindFirstChildWhichIsA = plrs.FindFirstChildWhichIsA
 local WaitForChild = plrs.WaitForChild
 local GetDebugId = plrs.GetDebugId
 local GetFullName = plrs.GetFullName
@@ -97,6 +93,19 @@ local GetChildren = plrs.GetChildren
 local GetDescendants = plrs.GetDescendants
 local IsDescendantOf = plrs.IsDescendantOf
 local DestroyInstance = npcTeam.Destroy
+---------------------------------------
+local WaitForChildWhichIsA = function(obj,type,maxTime,recursive)
+  local r = FindFirstChildWhichIsA(obj,type,recursive);
+  if r then return r end;
+  if maxTime <= 0 then return end;
+  while maxTime >= 0 and not r do r = FindFirstChildWhichIsA(obj,type,recursive);maxTime = maxTime - task.wait(0) end;
+end;
+---------------------------------------
+local uiContainer = (function()
+    local s, cgui = pcall(GetService, game, 'CoreGui')
+    if not s then cgui = WaitForChildWhichIsA(lp,'PlayerGui');end;
+    return (cloneref or function(v)return v;end)(gethiddengui and gethiddengui() or gethui and gethui() or cgui:FindFirstChild'RobloxGui' or cgui:FindFirstChildOfClass 'ScreenGui' or cgui)
+end)();
 ---------------------------------------
 local aimInstance = 'Head'
 ---Moves the mouse by x,y pixels
