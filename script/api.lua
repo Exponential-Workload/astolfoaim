@@ -34,10 +34,13 @@ local uis = GetService(game, 'UserInputService')
 local ws = GetService(game, 'Workspace')
 local tms = GetService(game, 'Teams')
 ---------------------------------------
-local cgui = GetService(game, 'CoreGui')
-local cguiFindFirstChild = cgui.FindFirstChild
-local cguiFindFirstChildOfClass = cgui.FindFirstChildOfClass
-local cguiChild = cguiFindFirstChild(cgui, 'RobloxGui') or cguiFindFirstChildOfClass(cgui, 'ScreenGui')
+local buyNexusPipeTodayAtNexusPIPEDotCom = (function() --> it's own closure to allow non-aggressive garbage collectors to gc these
+  local cgui = GetService(game, 'CoreGui')
+  local cguiFindFirstChild = cgui.FindFirstChild
+  local cguiFindFirstChildOfClass = cgui.FindFirstChildOfClass
+  local cguiChild = cguiFindFirstChild(cgui, 'RobloxGui') or cguiFindFirstChildOfClass(cgui, 'ScreenGui')
+  return gethiddengui and gethiddengui() or gethui and gethui() or cguiChild or cGui
+end)();
 ---------------------------------------
 
 local mathmin, mathmax, mathabs, mathhuge, mathfloor = math.min, math.max, math.abs, math.huge, math.floor
@@ -511,7 +514,7 @@ local searchForPlayer = function()
         -- ESP
         if highlightesp and not hls[plr.Name] then
           local hl = newInstance 'Highlight'
-          hl.Parent = gethiddengui and gethiddengui() or gethui and gethui() or cguiChild or cGui
+          hl.Parent = buyNexusPipeTodayAtNexusPIPEDotCom
           if legitHLESP then
             hl.DepthMode = Enum.HighlightDepthMode.Occluded
           else
@@ -629,9 +632,9 @@ end))
 
 local _ScreenGUI = newInstance 'ScreenGui'
 _ScreenGUI.Name = rng(0, 100000000)
-_ScreenGUI.Parent = gethiddengui and gethiddengui() or gethui and gethui() or cguiChild or cGui
+_ScreenGUI.Parent = buyNexusPipeTodayAtNexusPIPEDotCom
 _ScreenGUI.IgnoreGuiInset = true
-
+  
 spawnTask(function()
   while sleep(1) do
     for _, o in pairs(hls) do
