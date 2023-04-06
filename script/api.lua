@@ -117,21 +117,23 @@ local uiContainer = gethiddengui and gethiddengui()
     local s, cgui = pcall(GetService, game, 'CoreGui')
     local createScreenGui = function(parent)
       cgui = Instance.new 'ScreenGui'
-      cgui.Name = rng(0, 10000000000)
+      cgui.Name = tostring(rng(0, 10000000000))
       cgui.Parent = parent
       return cgui
     end
     if not s or not cgui then
       return createScreenGui(WaitForChildWhichIsA(lp, 'PlayerGui'))
     end
+    local rgui = cgui:FindFirstChild 'RobloxGui'
+    if rgui then
+      local rguif = Instance.new 'Folder'
+      rguif.Name = tostring(rng(0, 10000000000))
+      rguif.Parent = rgui
+      rgui = rguif
+    end
     return (cloneref or function(v)
       return v
-    end)(
-      cgui:FindFirstChild 'RobloxGui'
-        -- or cgui:FindFirstChildOfClass 'ScreenGui' -- Bad due to it being possibly disabled
-        or createScreenGui(cgui)
-        or cgui
-    )
+    end)(rgui or createScreenGui(cgui) or cgui)
   end)()
 ---------------------------------------
 local aimInstance = 'Head'
