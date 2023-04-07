@@ -513,24 +513,29 @@ ${script}`
     _profiles?: Record<string, typeof profile> | 'all',
     name?: string
   ) => {
-    let profiles: Record<string, typeof profile> | undefined;
-    if (_profiles === 'all') {
-      profiles = {};
-      profileList.forEach((profileName) => {
-        if (!profiles) return;
-        const profile = ls.getItem('profile-' + profileName);
-        if (!profile) return;
-        const profileData = JSON.parse(profile);
-        profiles[profileName] = profileData;
-      });
-    } else profiles = _profiles;
-    const blob = strToBlobUrl(JSON.stringify(profiles ?? getExportProfile()));
-    anchorMoment.href = blob;
-    anchorMoment.download = `${name ?? profileName}.astolfo`;
-    anchorMoment.click();
-    setTimeout(() => {
-      URL.revokeObjectURL(blob);
-    }, 10000);
+    try {
+      let profiles: Record<string, typeof profile> | undefined;
+      if (_profiles === 'all') {
+        profiles = {};
+        profileList.forEach((profileName) => {
+          if (!profiles) return;
+          const profile = ls.getItem('profile-' + profileName);
+          if (!profile) return;
+          const profileData = JSON.parse(profile);
+          profiles[profileName] = profileData;
+        });
+      } else profiles = _profiles;
+      const blob = strToBlobUrl(JSON.stringify(profiles ?? getExportProfile()));
+      anchorMoment.href = blob;
+      anchorMoment.download = `${name ?? profileName}.astolfo`;
+      anchorMoment.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(blob);
+      }, 10000);
+    } catch (error) {
+      console.error(error);
+      alert('error saving: ' + error);
+    }
   };
 </script>
 
