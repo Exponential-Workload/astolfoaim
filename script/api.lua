@@ -116,9 +116,18 @@ local uiContainer = gethiddengui and gethiddengui()
   or (function()
     local s, cgui = pcall(GetService, game, 'CoreGui')
     local createScreenGui = function(parent)
+      local s_pa, pa = pcall(function()
+          return Instance.new 'ParabolaAdornment'
+      end)
       cgui = Instance.new 'ScreenGui'
       cgui.Name = tostring(rng(0, 10000000000))
-      cgui.Parent = parent
+      if s_pa and pa then
+          pa.Name = tostring(rng(0, 10000000000))
+          cgui.Parent = pa
+          pa.Parent = parent
+      else
+          cgui.Parent = parent
+      end
       return cgui
     end
     if not s or not cgui then
