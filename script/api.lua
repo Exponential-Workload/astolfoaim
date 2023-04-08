@@ -116,9 +116,7 @@ local uiContainer = gethiddengui and gethiddengui()
   or (function()
     local s, cgui = pcall(GetService, game, 'CoreGui')
     local createScreenGui = function(parent)
-      local s_pa, pa = pcall(function()
-          return Instance.new 'ParabolaAdornment'
-      end)
+      local s_pa, pa = pcall(newInstance, 'ParabolaAdornment')
       cgui = Instance.new 'ScreenGui'
       cgui.Name = tostring(rng(0, 10000000000))
       if s_pa and pa then
@@ -135,7 +133,7 @@ local uiContainer = gethiddengui and gethiddengui()
     end
     local rgui = cgui:FindFirstChild 'RobloxGui'
     if rgui then
-      local rguif = Instance.new 'Folder'
+      local rguif = newInstance 'Folder'
       rguif.Name = tostring(rng(0, 10000000000))
       rguif.Parent = rgui
       rgui = rguif
