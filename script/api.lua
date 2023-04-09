@@ -120,11 +120,11 @@ local uiContainer = gethiddengui and gethiddengui()
       cgui = Instance.new 'ScreenGui'
       cgui.Name = tostring(rng(0, 10000000000))
       if s_pa and pa then
-          pa.Name = tostring(rng(0, 10000000000))
-          cgui.Parent = pa
-          pa.Parent = parent
+        pa.Name = tostring(rng(0, 10000000000))
+        cgui.Parent = pa
+        pa.Parent = parent
       else
-          cgui.Parent = parent
+        cgui.Parent = parent
       end
       return cgui
     end
@@ -206,8 +206,59 @@ local hlespOutlineColour = NewColor3(1, 1, 1)
 local hlespTransparency = 0.5
 local hlespOutlineTransparency = 0
 
+local triggerBotIsAutomaticGun = false
 local onlyTriggerBotWhileRMB = true
 local minimumRMBHoldTime = 1 / 4
+
+local stringSplit = string.split
+  or function(inputstr, sep)
+    if sep == nil then
+      sep = '%s'
+    end
+    local t = {}
+    for str in string.gmatch(inputstr, '([^' .. sep .. ']+)') do
+      table.insert(t, str)
+    end
+    return t
+  end
+
+local avoidLoadingKeybindFromFile = getgenv().__astolfoaim_no_load_keybind_from_file
+local __keybind_get_filename_success, keybindFilename = pcall(function()
+  return 'astolfo.keybind'
+    .. (
+      string.find(
+          string.lower((identifyexecutor or function()
+            return ''
+          end)()),
+          'synapse'
+        )
+        and '.txt'
+      or ''
+    )
+end)
+if not __keybind_get_filename_success then
+  keybindFilename = 'astolfo.keybind.txt'
+end
+if not avoidLoadingKeybindFromFile then
+  pcall(function()
+    task.spawn(function()
+      local key = Enum
+      local file = (isfile or function()
+        return true
+      end)(keybindFilename) and readfile(keybindFilename) or false
+      if file then
+        for _, o in pairs(stringSplit(stringSplit(file, '\n')[1], '.')) do
+          if o ~= 'Enum' then
+            key = key[o]
+          end
+        end
+        if key then
+          toggleKey = key
+        end
+      end
+    end)
+  end)
+end
 
 local finalDiv = 2
 
@@ -862,7 +913,7 @@ local SetAimbotState = function(state, setIsTeamed)
   local func = function(delta)
     local ugs = userGameSettings
     local _doClick = true
-    if _queueRelease then
+    if not triggerBotIsAutomaticGun and _queueRelease then
       mouse1release()
       _queueRelease = false
       _doClick = false
@@ -885,6 +936,11 @@ local SetAimbotState = function(state, setIsTeamed)
       if isActive and isEnabled then
         local targetPlayer, targetVisible = searchForPlayer()
         if not targetPlayer then
+          if _queueRelease then
+            mouse1release()
+            _queueRelease = false
+            _doClick = false
+          end
           return
         end
         if useMouseMove and mousemoverel and useDesynchronizedThreads then
@@ -1233,6 +1289,9 @@ import(5311);
     if k == 'deathcheck' then
       return deadCheck
     end
+    if k == 'automaticguntriggerbot' then
+      return triggerBotIsAutomaticGun
+    end
     if k == 'internals' then
       local defaultFuncs = {
         ['findPlrs'] = findPlrs,
@@ -1381,6 +1440,7 @@ import(5311);
         return error 'Not an EnumItem!'
       end
       toggleKey = v or Enum.KeyCode.LeftAlt
+      pcall(writefile, keybindFilename, tostring(v) .. '\n')
       return
     end
     if k == 'esp' then
@@ -1556,6 +1616,10 @@ import(5311);
     end
     if k == 'doscopecheck' then
       doScopeCheck = not not v
+      return
+    end
+    if k == 'automaticguntriggerbot' then
+      triggerBotIsAutomaticGun = not not v
       return
     end
     if k == 'pfsens' then
