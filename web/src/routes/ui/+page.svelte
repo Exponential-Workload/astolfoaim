@@ -917,7 +917,7 @@ end);
 repeat task.wait() until isDone; return 'Assigned to: '..tostring(isDone);
 `);
               showNotif(
-                "Press the desired key on your PC.\nIt won't be saved as of now.\nLimited to a single Key."
+                'Press the desired key on your PC.\nLimited to a single Key.'
               );
             }}
             style="background: #1e2030;"
