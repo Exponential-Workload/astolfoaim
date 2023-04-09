@@ -1,9 +1,7 @@
 <script lang="ts">
   import { dev } from '$app/environment';
-  import { asyncAlert, asyncConfirm, asyncPrompt } from '$lib/asyncnotif';
-  import Slider from '$lib/Slider/Slider.svelte';
+  import { asyncConfirm, asyncPrompt } from '$lib/asyncnotif';
   import { onDestroy, onMount } from 'svelte';
-  import { loop_guard } from 'svelte/internal';
   import { fly } from 'svelte/transition';
   import Nl from './Nl.svelte';
   import UiSlider from './UISlider.svelte';
@@ -47,17 +45,21 @@
       notifs.length > 3 ? 2000 : 5000
     );
   };
-  const server = dev
-    ? 'localhost:5595'
-    : typeof location !== 'undefined'
-    ? location.host ?? location.hostname
-    : 'aim.femboy.cafe';
-  const protocol = dev ? 'http://' : 'https://';
+  const shouldUseLocal = false;
+  const server =
+    dev && shouldUseLocal
+      ? 'localhost:5595'
+      : dev
+      ? 'aim.femboy.cafe'
+      : typeof location !== 'undefined'
+      ? location.host ?? location.hostname
+      : 'aim.femboy.cafe';
+  const protocol = dev && shouldUseLocal ? 'http://' : 'https://';
   const connect = () => {
     rbxResponded = false;
     connecting = true;
     const socketLocation = `${
-      location.protocol.includes('https') ? 'wss' : 'ws'
+      protocol.includes('https') ? 'wss' : 'ws'
     }://${server}/c/${connectioncode}`;
     log('Attempt Connection', socketLocation);
     const ws = new WebSocket(socketLocation);
@@ -122,40 +124,6 @@
         };
   let profileList: string[] = JSON.parse(ls.getItem('profile-list') ?? '[]');
   let profileName: string | undefined;
-  type Action =
-    | 'fov'
-    | 'maxdistance'
-    | 'wallcheck'
-    | 'triggerbot'
-    | 'keybindtoggle'
-    | 'esp'
-    | 'hlesp'
-    | 'circlesides'
-    | 'smoothing'
-    | 'jitter'
-    | 'linkaimbotesp'
-    | 'usemousemove'
-    | 'teamed'
-    | 'recursionCount'
-    | 'aimTarget'
-    | 'legitesp'
-    | 'refreshcap'
-    | 'limitraycasttocircle'
-    | 'legithlesp'
-    | 'additionalsmoothing'
-    | 'accountforsensitivity'
-    | 'maxpixelspersecond'
-    | 'maxpixelsperframe'
-    | 'finaldiv'
-    | 'onlytriggerbotwhilermb'
-    | 'triggerbotminimumrmbtime'
-    | 'deathcheck'
-    | 'useHumanoidsShouldDetectPlayersViaFindPlrs'
-    | 'humanoidsearch'
-    | 'espColour'
-    | 'espTransparency'
-    | 'espOutlineTransparency'
-    | 'espOutlineColour';
   let currentTab: AvailableTab = 'General';
   let hasLoadedTab = false;
   onMount(() => {
@@ -169,7 +137,7 @@
     }
   }
   let profile: Partial<Record<Action, any>> | undefined;
-  const actions: Record<Action, (value: any) => string> = {
+  const actions = {
     fov: (value: number) => `api.fov=${value};`,
     maxdistance: (value: number) => `api.maxdistance=${value};`,
     keybindtoggle: (value: boolean) => `api.keybindtoggle=${value};`,
@@ -197,7 +165,7 @@
     maxpixelsperframe: (value: number) => `api.maximumpixelsperframe=${value};`,
     maxpixelspersecond: (value: number) =>
       `api.maximumPixelsPerSecond=${value};`,
-    finaldiv: (value: number) => `api.finaldiv=${Number(value)};`,
+    finalDiv: (value: number) => `api.finaldiv=${Number(value)};`,
     onlytriggerbotwhilermb: (value: boolean) =>
       `api.onlytriggerbotwhilermb=${value};`,
     triggerbotminimumrmbtime: (value: number) =>
@@ -213,7 +181,10 @@
       `api.espOutlineTransparency=${value};`,
     espOutlineColour: (value: Record<'r' | 'g' | 'b', number>) =>
       `api.espOutlineColour=Color3.fromRGB(${value.r},${value.g},${value.b});`,
+    automaticGunTriggerBot: (value: boolean) =>
+      `api.automaticguntriggerbot=${value};`,
   };
+  type Action = keyof typeof actions;
   const addProfile = async (name?: string | null | void) => {
     name =
       name ?? (await asyncPrompt('Profile Name', undefined, undefined, true));
@@ -239,7 +210,7 @@
     console.log('pcall:', isUsingPcall);
     let script = '';
     for (const action in actions) {
-      const getScript = actions[action as Action];
+      const getScript = actions[action as Action] as (value: any) => string;
       const value = profile[action as Action];
       if (typeof value !== 'undefined') {
         const part = `${isUsingPcall ? `pcall` : ''}(function()${getScript(
@@ -301,7 +272,7 @@ ${script}`
       refreshcap: 0.02,
       limitraycasttocircle: false,
       accountforsensitivity: true,
-      finaldiv: 2,
+      finalDiv: 2,
       maxpixelspersecond: 5000,
       maxpixelsperframe: 4000,
       aimTarget: 'Head',
@@ -323,6 +294,7 @@ ${script}`
         b: 255,
       },
       espOutlineTransparency: 0,
+      automaticGunTriggerBot: false,
       ...profile,
     };
     const searchResult = baseTargetItems.find(
@@ -381,7 +353,7 @@ ${script}`
         `${protocol}${server}/get-connection-code?onlyIfExists=true`
       );
       const rst = await rs.text();
-      if (rst === '!code!') return;
+      if (rst === '!code!' || rst.startsWith('<!DOCTYPE')) return;
       else connectioncode = rst;
     }
     i = setTimeout(updateCode, d);
@@ -500,7 +472,7 @@ ${script}`
       showNotif(
         `Imported ${profilesImported} Profile${
           profilesImported === 1 ? '' : 's'
-        }}`
+        }`
       );
     });
   };
@@ -815,6 +787,12 @@ ${script}`
                 Trigger Bot
               </Checkbox>
               <Checkbox
+                bind:checked={profile.automaticGunTriggerBot}
+                on:changed={changed}
+              >
+                Gun is Automatic
+              </Checkbox>
+              <Checkbox
                 bind:checked={profile.onlytriggerbotwhilermb}
                 on:changed={changed}
               >
@@ -865,7 +843,7 @@ ${script}`
                 />
                 <UiSlider
                   on:changed={changed}
-                  bind:value={profile.finaldiv}
+                  bind:value={profile.finalDiv}
                   min={0.1}
                   max={5}
                   step={0.1}

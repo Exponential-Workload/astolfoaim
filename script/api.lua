@@ -1289,6 +1289,9 @@ import(5311);
     if k == 'deathcheck' then
       return deadCheck
     end
+    if k == 'automaticguntriggerbot' then
+      return triggerBotIsAutomaticGun
+    end
     if k == 'internals' then
       local defaultFuncs = {
         ['findPlrs'] = findPlrs,
@@ -1613,6 +1616,10 @@ import(5311);
     end
     if k == 'doscopecheck' then
       doScopeCheck = not not v
+      return
+    end
+    if k == 'automaticguntriggerbot' then
+      triggerBotIsAutomaticGun = not not v
       return
     end
     if k == 'pfsens' then
