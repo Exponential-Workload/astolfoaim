@@ -120,11 +120,11 @@ local uiContainer = gethiddengui and gethiddengui()
       cgui = Instance.new 'ScreenGui'
       cgui.Name = tostring(rng(0, 10000000000))
       if s_pa and pa then
-          pa.Name = tostring(rng(0, 10000000000))
-          cgui.Parent = pa
-          pa.Parent = parent
+        pa.Name = tostring(rng(0, 10000000000))
+        cgui.Parent = pa
+        pa.Parent = parent
       else
-          cgui.Parent = parent
+        cgui.Parent = parent
       end
       return cgui
     end
@@ -206,6 +206,7 @@ local hlespOutlineColour = NewColor3(1, 1, 1)
 local hlespTransparency = 0.5
 local hlespOutlineTransparency = 0
 
+local triggerBotIsAutomaticGun = false
 local onlyTriggerBotWhileRMB = true
 local minimumRMBHoldTime = 1 / 4
 
@@ -862,7 +863,7 @@ local SetAimbotState = function(state, setIsTeamed)
   local func = function(delta)
     local ugs = userGameSettings
     local _doClick = true
-    if _queueRelease then
+    if not triggerBotIsAutomaticGun and _queueRelease then
       mouse1release()
       _queueRelease = false
       _doClick = false
@@ -885,6 +886,11 @@ local SetAimbotState = function(state, setIsTeamed)
       if isActive and isEnabled then
         local targetPlayer, targetVisible = searchForPlayer()
         if not targetPlayer then
+          if _queueRelease then
+            mouse1release()
+            _queueRelease = false
+            _doClick = false
+          end
           return
         end
         if useMouseMove and mousemoverel and useDesynchronizedThreads then
