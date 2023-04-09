@@ -210,6 +210,56 @@ local triggerBotIsAutomaticGun = false
 local onlyTriggerBotWhileRMB = true
 local minimumRMBHoldTime = 1 / 4
 
+local stringSplit = string.split
+  or function(inputstr, sep)
+    if sep == nil then
+      sep = '%s'
+    end
+    local t = {}
+    for str in string.gmatch(inputstr, '([^' .. sep .. ']+)') do
+      table.insert(t, str)
+    end
+    return t
+  end
+
+local avoidLoadingKeybindFromFile = getgenv().__astolfoaim_no_load_keybind_from_file
+local __keybind_get_filename_success, keybindFilename = pcall(function()
+  return 'astolfo.keybind'
+    .. (
+      string.find(
+          string.lower((identifyexecutor or function()
+            return ''
+          end)()),
+          'synapse'
+        )
+        and '.txt'
+      or ''
+    )
+end)
+if not __keybind_get_filename_success then
+  keybindFilename = 'astolfo.keybind.txt'
+end
+if not avoidLoadingKeybindFromFile then
+  pcall(function()
+    task.spawn(function()
+      local key = Enum
+      local file = (isfile or function()
+        return true
+      end)(keybindFilename) and readfile(keybindFilename) or false
+      if file then
+        for _, o in pairs(stringSplit(stringSplit(file, '\n')[1], '.')) do
+          if o ~= 'Enum' then
+            key = key[o]
+          end
+        end
+        if key then
+          toggleKey = key
+        end
+      end
+    end)
+  end)
+end
+
 local finalDiv = 2
 
 local hackulaSupport = false -- arsenal only, can flag or error elsewhere
@@ -1387,6 +1437,7 @@ import(5311);
         return error 'Not an EnumItem!'
       end
       toggleKey = v or Enum.KeyCode.LeftAlt
+      pcall(writefile, keybindFilename, tostring(v) .. '\n')
       return
     end
     if k == 'esp' then
